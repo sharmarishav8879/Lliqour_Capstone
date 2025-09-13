@@ -1,11 +1,34 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
+import { AuthContext } from "../../context/authContext";
 
 export default function Login() {
   const router = useRouter();
+  const { loginNewUser } = useContext(AuthContext);
+  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSignIn = () => {
     router.push("/auth/signUp");
+  };
+
+  const handleLogin = () => {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
+    if (!currentUser) {
+      alert("No user found. Please sign up first.");
+    } else if (
+      email === currentUser.email &&
+      password === currentUser.password &&
+      userName === currentUser.name
+    ) {
+      loginNewUser(currentUser);
+      router.push("/account");
+    } else {
+      alert("Invalid credentials. Please try again.");
+    }
   };
   return (
     <main>
@@ -18,23 +41,29 @@ export default function Login() {
         </p>
 
         <input
+          onChange={(e) => setUserName(e.target.value)}
           className="p-2 border border-gray-300 rounded text-black"
           type="text"
           placeholder="Username"
         />
 
         <input
+          onChange={(e) => setEmail(e.target.value)}
           className="p-2 border border-gray-300 rounded text-black"
           type="email"
           placeholder="Email"
         />
 
         <input
+          onChange={(e) => setPassword(e.target.value)}
           className="p-2 border border-gray-300 rounded text-black"
           type="password"
           placeholder="Password"
         />
-        <button className="mt-2 bg-orange-600 text-white px-6 py-3 rounded hover:bg-orange-700 transition duration-300">
+        <button
+          onClick={handleLogin}
+          className="mt-2 bg-orange-600 text-white px-6 py-3 rounded hover:bg-orange-700 transition duration-300"
+        >
           Log In
         </button>
 

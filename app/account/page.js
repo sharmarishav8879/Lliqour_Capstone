@@ -1,14 +1,16 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/authContext";
 
 export default function Profile() {
+  const { logout } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const handleSignOut = () => {
-    setUser(null);
+    logout();
     router.push("/");
   };
 
@@ -17,15 +19,11 @@ export default function Profile() {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      // For the case if no user is signed in
-      setUser(null);
-      setLoading(false);
-
-      // For the case if a user is signed in
-      // setUser({ name: "Bob the Builder", email: "bobthebuilder@me.com" });
-      // setLoading(false);
-    }, 3000);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
   if (loading) {
