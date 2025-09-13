@@ -30,24 +30,31 @@ export default function Navbar() {
           <li>
             <Link href="/catalogue">Catalogue</Link>
           </li>
+
+          {/* JOSEPH Added this item */}
+          <li>
+            <Link href="/products">Products</Link>
+          </li>
+
           <li>
             <Link href="/contact">Contact Us</Link>
           </li>
         </ul>
 
+        {/* Right: Icons (search, account, cart) */}
         <ul className="flex space-x-6 text-black text-3xl pr-50">
           <li>
-            <Link href="/search">
+            <Link href="/search" aria-label="Search">
               <HiOutlineSearch />
             </Link>
           </li>
           <li>
-            <Link href="/account">
+            <Link href="/account" aria-label="Account">
               <HiOutlineUser />
             </Link>
           </li>
           <li>
-            <Link href="/cart">
+            <Link href="/cart" aria-label="Cart">
               <HiOutlineShoppingCart />
             </Link>
           </li>
