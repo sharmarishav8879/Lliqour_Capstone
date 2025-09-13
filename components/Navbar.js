@@ -1,25 +1,26 @@
-import Link from "next/link";
 import Image from "next/image";
 import { HiOutlineUser, HiOutlineShoppingCart } from "react-icons/hi2";
 import { HiOutlineSearch } from "react-icons/hi";
+import Link from "next/link";
 
 export default function Navbar() {
   return (
     <nav className="bg-white py-6 px-6">
       <div className="flex items-center justify-between">
-        {/* Left: Logo + brand name */}
         <div className="flex items-center pl-50">
           <Image
-            src="/placeholderLogo.png"
+            src="/Logo.jpg"
+            className="border-orange-500 border-2 rounded-full"
             alt="Legacy Liquor Logo"
             width={40}
             height={40}
           />
-          <span className="ml-3 text-black text-xl font-bold">Legacy Liquor</span>
+          <span className="ml-3 text-black text-xl font-bold font-serif">
+            Legacy Liquor
+          </span>
         </div>
 
-        {/* Center: Main nav links */}
-        <ul className="flex space-x-10 text-black text-lg font-semibold">
+        <ul className="flex space-x-10 text-orange-500  text-lg font-serif">
           <li>
             <Link href="/">Home</Link>
           </li>
