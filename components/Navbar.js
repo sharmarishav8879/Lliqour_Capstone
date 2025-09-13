@@ -7,8 +7,8 @@ export default function Navbar() {
   return (
     <nav className="bg-white py-6 px-6">
       <div className="flex items-center justify-between">
-        
-        <div className="flex items-center pl-50"> 
+        {/* Left: Logo + brand name */}
+        <div className="flex items-center pl-50">
           <Image
             src="/placeholderLogo.png"
             alt="Legacy Liquor Logo"
@@ -18,6 +18,7 @@ export default function Navbar() {
           <span className="ml-3 text-black text-xl font-bold">Legacy Liquor</span>
         </div>
 
+        {/* Center: Main nav links */}
         <ul className="flex space-x-10 text-black text-lg font-semibold">
           <li>
             <Link href="/">Home</Link>
@@ -28,24 +29,31 @@ export default function Navbar() {
           <li>
             <Link href="/catalogue">Catalogue</Link>
           </li>
+
+          {/* JOSEPH Added this item */}
+          <li>
+            <Link href="/products">Products</Link>
+          </li>
+
           <li>
             <Link href="/contact">Contact Us</Link>
           </li>
         </ul>
 
+        {/* Right: Icons (search, account, cart) */}
         <ul className="flex space-x-6 text-black text-3xl pr-50">
           <li>
-            <Link href="/search">
+            <Link href="/search" aria-label="Search">
               <HiOutlineSearch />
             </Link>
           </li>
           <li>
-            <Link href="/account">
+            <Link href="/account" aria-label="Account">
               <HiOutlineUser />
             </Link>
           </li>
           <li>
-            <Link href="/cart">
+            <Link href="/cart" aria-label="Cart">
               <HiOutlineShoppingCart />
             </Link>
           </li>
