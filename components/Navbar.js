@@ -44,7 +44,7 @@ export default function Navbar() {
         {/* Right: Icons (search, account, cart) */}
         <ul className="flex space-x-6 text-black text-3xl pr-50">
           <li>
-            <Link href="/search" aria-label="Search">
+            <Link href="/searchFilter" aria-label="Search">
               <HiOutlineSearch />
             </Link>
           </li>
