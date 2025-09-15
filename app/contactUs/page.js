@@ -24,7 +24,7 @@ export default function ContactUs() {
     setFormData({ name: "", email: "", message: "" });
   };
   return (
-    <main className="bg-gray-100 min-h-screen relative flex flex-col">
+    <main className="bg-gray-100 min-h-screen mt-20 relative flex flex-col">
       <div className="flex flex-col items-center justify-center font-serif p-6">
         <h1 className="text-4xl font-bold mt-2 text-orange-500 font-serif">
           Contact Us
