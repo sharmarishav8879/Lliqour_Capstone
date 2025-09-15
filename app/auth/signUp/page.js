@@ -16,7 +16,7 @@ export default function SignUp() {
 
     localStorage.setItem("user", JSON.stringify({ name, email, password }));
     alert("Sign Up Successful! Please log in.");
-    router.push("/auth/login");
+    router.push("/account");
   };
   return (
     <div className="flex flex-col items-center justify-center font-serif min-h-screen bg-gray-100 gap-4">
