@@ -53,7 +53,7 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <Link href="/cart" aria-label="Cart">
+            <Link href="" aria-label="Cart">
               <HiOutlineShoppingCart />
             </Link>
           </li>
