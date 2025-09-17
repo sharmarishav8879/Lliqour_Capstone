@@ -1,30 +1,49 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/authContext";
+import { useState, useEffect } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { useUserAuth } from "../auth/_util/auth-context";
+import { db } from "../auth/_util/firebase";
 
 export default function Profile() {
-  const { logout } = useContext(AuthContext);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, firebaseSignOut } = useUserAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [name, setName] = useState("");
 
-  const handleSignOut = () => {
-    logout();
-    router.push("/");
+  const handleSignOut = async () => {
+    try {
+      await firebaseSignOut();
+      router.push("/auth/login");
+    } catch (error) {
+      alert("Error signing out: ", error.message);
+    }
   };
+
+  useEffect(() => {
+    if (user !== undefined) {
+      setLoading(false);
+    }
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnapshot = await getDoc(userDocRef);
+          if (userDocSnapshot.exists()) {
+            const userData = userDocSnapshot.data();
+            setName(userData.name);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+    fetchUserData();
+  }, [user]);
 
   const handleSignIn = () => {
     router.push("/auth/login");
   };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
 
   if (loading) {
     return (
@@ -41,7 +60,7 @@ export default function Profile() {
         <div className="flex flex-col items-center justify-center font-serif h-100 bg-black p-4 rounded-lg shadow-md gap-2">
           <h1 className="text-4xl font-bold top-0 text-white">Profile</h1>
           <p className="text-3xl mt-4 p-3 rounded  text-orange-600 ">
-            Name: {user.name}
+            Name: {name || "No name available"}
           </p>
           <p className="text-3xl mt-4  text-orange-600 ">Email: {user.email}</p>
           <div>

@@ -1,12 +1,12 @@
 "use client";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
-import { AuthContext } from "../../context/authContext";
+import { useState } from "react";
+import { auth } from "../_util/firebase";
+import { useUserAuth } from "../_util/auth-context";
 
 export default function Login() {
   const router = useRouter();
-  const { loginNewUser } = useContext(AuthContext);
-  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -14,22 +14,25 @@ export default function Login() {
     router.push("/auth/signUp");
   };
 
-  const handleLogin = () => {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
-
-    if (!currentUser) {
-      alert("No user found. Please sign up first.");
-    } else if (
-      email === currentUser.email &&
-      password === currentUser.password &&
-      userName === currentUser.name
-    ) {
-      loginNewUser(currentUser);
+  const handleLogin = async () => {
+    try {
+      if (!email || !password) {
+        alert("Please fill in all fields");
+        return;
+      }
+      const userCredentials = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredentials.user;
+      console.log("User logged in: ", user);
       router.push("/account");
-    } else {
-      alert("Invalid credentials. Please try again.");
+    } catch (error) {
+      alert(`Error logging in:  ${error.message}`);
     }
   };
+
   return (
     <main>
       <div className="flex flex-col items-center justify-center font-serif min-h-screen bg-gray-100 gap-4">
@@ -39,13 +42,6 @@ export default function Login() {
         <p className="text-lg text-black">
           Please enter your credentials to log in.
         </p>
-
-        <input
-          onChange={(e) => setUserName(e.target.value)}
-          className="p-2 border border-gray-300 rounded text-black"
-          type="text"
-          placeholder="Username"
-        />
 
         <input
           onChange={(e) => setEmail(e.target.value)}
