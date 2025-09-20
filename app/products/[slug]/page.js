@@ -17,7 +17,7 @@ export default async function ProductDetail({ params }) {
 
   return (
     <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
         <div>
           <img
             src={product.image}
@@ -28,7 +28,9 @@ export default async function ProductDetail({ params }) {
 
         <div>
           <h1 className="text-3xl font-extrabold">{product.name}</h1>
-          <div className="mt-2 text-2xl font-extrabold">${product.price.toFixed(2)}</div>
+          <div className="mt-2 text-2xl font-extrabold">
+            ${product.price.toFixed(2)}
+          </div>
 
           {product.category && (
             <ul className="mt-3 space-y-1 leading-relaxed">
@@ -55,9 +57,7 @@ export default async function ProductDetail({ params }) {
             </ul>
           )}
 
-          {product.description && (
-            <p className="mt-3">{product.description}</p>
-          )}
+          {product.description && <p className="mt-3">{product.description}</p>}
 
           <AddToCartClient product={product} />
         </div>

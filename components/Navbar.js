@@ -25,25 +25,31 @@ export default function Navbar() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 ">
               {filterProducts.length > 0 ? (
                 filterProducts.map((product) => (
-                  <div
+                  <Link
+                    href={`/products/${product.slug}`}
                     key={product.id}
-                    className="flex flex-col items-center justify-center font-serif p-6 bg-black rounded-lg"
+                    className={`bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 `}
                   >
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-64 h-64 object-cover rounded"
+                      className="w-full h-56 object-cover"
+                      onClick={(e) => e.stopPropagation()}
                     />
-                    <h2 className="text-2xl font-bold mt-4 text-white font-serif">
-                      {product.name}
-                    </h2>
-                    <div className="flex flex-row items-center justify-center font-serif p-2 gap-9">
-                      <p className="text-lg text-white">ABV: {product.abv}</p>
-
-                      <p className="text-lg text-white">{product.size}</p>
+                    <div className="p-4 flex flex-col justify-between h-40">
+                      <div className="font-bold text-lg text-black">
+                        {product.name}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {product.size ? `${product.size} • ` : ""}
+                        {product.abv ? `${product.abv} • ` : ""}
+                        {product.origin || ""}
+                      </div>
+                      <div className="mt-2 font-extrabold text-gray-900">
+                        ${product.price.toFixed(2)}
+                      </div>
                     </div>
-                    <p className="text-lg text-orange-500">${product.price}</p>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <p className="text-center text-orange-500 text-lg">

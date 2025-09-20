@@ -14,7 +14,12 @@ export default function AddToCartClient({ product }) {
   }
 
   return (
-    <div style={{ marginTop: 16, display: "flex", gap: 8, alignItems: "center" }}>
+    <div>
+      <p
+      className="absolute top-40 left-15 text-sm"><a 
+      className="text-orange-500 underline text-2xl"
+      href="/">Back</a></p>
+      <div style={{ marginTop: 16, display: "flex", gap: 8, alignItems: "center" }}>
       <input
         type="number"
         min="1"
@@ -30,6 +35,7 @@ export default function AddToCartClient({ product }) {
       >
         Add to cart
       </button>
-    </div>
+    </div></div>
+    
   );
 }
