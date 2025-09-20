@@ -48,12 +48,8 @@ export default function Home() {
   }, []);
 
   return (
-
-    <main className="scroll-smooth font-serif mt-8">
-      <section className="relative flex items-center h-[60vh] bg-gray-100">
-
     <main className="scroll-smooth font-serif">
-      <section className="relative flex items-center h-[60vh] bg-white">
+      <section className="relative flex items-center h-[70vh] bg-white">
         <div className="w-full h-full relative">
           <Image
             src="/beerHeader.png"
@@ -95,7 +91,7 @@ export default function Home() {
 
       <section
         id="catalogue"
-        className="min-h-screen flex flex-col items-center bg-white py-12 scroll-mt-[80px]"
+        className="min-h-screen flex flex-col items-center bg-white py-25 scroll-mt-[80px] "
       >
         <h2 className="text-7xl font-bold text-black mb-12">Catalogue</h2>
 
