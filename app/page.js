@@ -48,6 +48,10 @@ export default function Home() {
   }, []);
 
   return (
+
+    <main className="scroll-smooth font-serif mt-8">
+      <section className="relative flex items-center h-[60vh] bg-gray-100">
+
     <main className="scroll-smooth font-serif">
       <section className="relative flex items-center h-[60vh] bg-white">
         <div className="w-full h-full relative">

@@ -1,11 +1,61 @@
+"use client";
+
 import Image from "next/image";
 import { HiOutlineUser, HiOutlineShoppingCart } from "react-icons/hi2";
 import { HiOutlineSearch } from "react-icons/hi";
 import Link from "next/link";
+import { useState } from "react";
+import { getAllProducts } from "@/lib/products";
 
 export default function Navbar() {
+  const [filter, setFilter] = useState("");
+
+  const filterProducts = getAllProducts().filter((product) =>
+    product.name.toLowerCase().includes(filter.toLowerCase())
+  );
+
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
+      {filter !== "" && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-0 top-[135px] left-0 w-full h-screen bg-black/30 flex items-start justify-center font-serif p-6"
+        >
+          <div className="bg-white   max-h-[80vh] overflow-y-auto rounded-2xl shadow-lg p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 ">
+              {filterProducts.length > 0 ? (
+                filterProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex flex-col items-center justify-center font-serif p-6 bg-black rounded-lg"
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-64 h-64 object-cover rounded"
+                    />
+                    <h2 className="text-2xl font-bold mt-4 text-white font-serif">
+                      {product.name}
+                    </h2>
+                    <div className="flex flex-row items-center justify-center font-serif p-2 gap-9">
+                      <p className="text-lg text-white">ABV: {product.abv}</p>
+
+                      <p className="text-lg text-white">{product.size}</p>
+                    </div>
+                    <p className="text-lg text-orange-500">${product.price}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-orange-500 text-lg">
+                  No products found.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navbar Content */}
       <div className="flex items-center justify-between">
         <div className="flex items-center pl-50">
           <Image
@@ -20,6 +70,44 @@ export default function Navbar() {
           </span>
         </div>
 
+
+        <div>
+          <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
+            <li>
+              <Link href="/">Home</Link>
+            </li>
+            <li>
+              <a href="/#special-offer">Special Offers</a>
+            </li>
+            <li>
+              <a href="/#catalogue">Catalogue</a>
+            </li>
+            <li>
+              <Link href="/products">Products</Link>
+            </li>
+            <li>
+              <Link href="/contactUs">Contact Us</Link>
+            </li>
+          </ul>
+
+          {/* Search Bar */}
+          <div className="flex flex-row items-center gap-5 border text-black border-gray-300 rounded p-2 mt-4">
+            <HiOutlineSearch />
+            <input
+              onChange={(e) => setFilter(e.target.value)}
+              type="text"
+              value={filter}
+              placeholder="Search"
+              className="border-none outline-none ml-2 text-black w-full "
+            />
+            <div
+              onClick={() => setFilter("")}
+              className="text-black  cursor-pointer mr-4"
+            >
+              x
+            </div>
+          </div>
+        </div>
         <ul className="flex space-x-10 text-orange-500  text-xl font-serif">
           <li>
             <Link href="/">Home</Link>
@@ -36,12 +124,8 @@ export default function Navbar() {
           </li>
         </ul>
 
+
         <ul className="flex space-x-6 text-black text-3xl pr-50">
-          <li>
-            <Link href="/searchFilter" aria-label="Search">
-              <HiOutlineSearch />
-            </Link>
-          </li>
           <li>
             <Link href="/account" aria-label="Account">
               <HiOutlineUser />
