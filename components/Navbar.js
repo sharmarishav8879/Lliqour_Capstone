@@ -31,11 +31,6 @@ export default function Navbar() {
             <a href="/#catalogue">Catalogue</a>
           </li>
 
-          {/* JOSEPH Added this item */}
-          <li>
-            <Link href="/products">Products</Link>
-          </li>
-
           <li>
             <Link href="/contactUs">Contact Us</Link>
           </li>
