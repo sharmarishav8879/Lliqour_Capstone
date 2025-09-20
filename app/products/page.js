@@ -15,14 +15,18 @@ export default function ProductsPage() {
 
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: 16 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>Products</h1>
-      <p style={{ opacity: 0.8, marginBottom: 16 }}>Click a product to view details.</p>
+      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>
+        Products
+      </h1>
+      <p style={{ opacity: 0.8, marginBottom: 16, marginTop: 80 }}>
+        Click a product to view details.
+      </p>
 
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: 16
+          gap: 16,
         }}
       >
         {items.map((p) => (
@@ -35,7 +39,7 @@ export default function ProductsPage() {
               overflow: "hidden",
               textDecoration: "none",
               color: "inherit",
-              background: "#111"
+              background: "#111",
             }}
           >
             <img
