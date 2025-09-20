@@ -107,6 +107,21 @@ export default function Navbar() {
             </div>
           </div>
         </div>
+        <ul className="flex space-x-10 text-orange-500  text-xl font-serif">
+          <li>
+            <Link href="/">Home</Link>
+          </li>
+          <li>
+            <a href="/#special-offer">Special Offers</a>
+          </li>
+          <li>
+            <a href="/#catalogue">Catalogue</a>
+          </li>
+
+          <li>
+            <Link href="/contactUs">Contact Us</Link>
+          </li>
+        </ul>
 
         <ul className="flex space-x-6 text-black text-3xl pr-50">
           <li>
