@@ -19,7 +19,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="scroll-smooth font-serif">
+    <main className="scroll-smooth font-serif mt-8">
       <section className="relative flex items-center h-[60vh] bg-gray-100">
         <div className="w-full h-full relative">
           <Image
