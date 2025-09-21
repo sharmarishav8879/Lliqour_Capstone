@@ -4,15 +4,32 @@ import Image from "next/image";
 import { HiOutlineUser, HiOutlineShoppingCart } from "react-icons/hi2";
 import { HiOutlineSearch } from "react-icons/hi";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllProducts } from "@/lib/products";
 
 export default function Navbar() {
   const [filter, setFilter] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const filterProducts = getAllProducts().filter((product) =>
     product.name.toLowerCase().includes(filter.toLowerCase())
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (filter !== "") {
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  }, [filter]);
 
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
@@ -106,7 +123,10 @@ export default function Navbar() {
               className="border-none outline-none ml-2 text-black w-full "
             />
             <div
-              onClick={() => setFilter("")}
+              onClick={() => {
+                setFilter("");
+                setIsOpen(false);
+              }}
               className="text-black  cursor-pointer mr-4"
             >
               x
