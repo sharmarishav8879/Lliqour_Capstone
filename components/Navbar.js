@@ -13,6 +13,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [order, setOrder] = useState("asc");
   const [filterProducts, setFilterProducts] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
 
   const handleOrderType = () => {
     setOrder(order === "asc" ? "desc" : "asc");
@@ -97,8 +98,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Navbar Content */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between relative">
         <div className="flex items-center pl-50">
           <Image
             src="/Logo.jpg"
@@ -112,45 +112,63 @@ export default function Navbar() {
           </span>
         </div>
 
-        <div>
+        <div className="absolute left-1/2 transform -translate-x-1/2">
           <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
-            <li><Link href="/">Home</Link></li>
-            <li><a href="/#special-offer">Special Offers</a></li>
-            <li><a href="/#catalogue">Catalogue</a></li>
-            <li><Link href="/products">Products</Link></li>
-            <li><Link href="/contactUs">Contact Us</Link></li>
+            <li>
+              <Link href="/">Home</Link>
+            </li>
+            <li>
+              <a href="/#special-offer">Special Offers</a>
+            </li>
+            <li>
+              <a href="/#catalogue">Catalogue</a>
+            </li>
+            <li>
+              <Link href="/contactUs">Contact Us</Link>
+            </li>
           </ul>
-
-          {/* Search Bar */}
-          <div className="flex flex-row items-center gap-5 border text-black border-gray-300 rounded p-2 mt-4">
-            <HiOutlineSearch />
-            <input
-              onChange={(e) => setFilter(e.target.value)}
-              type="text"
-              value={filter}
-              placeholder="Search"
-              className="border-none outline-none ml-2 text-black w-full"
-            />
-            <div
-              onClick={() => { setFilter(""); setIsOpen(false); }}
-              className="text-black cursor-pointer mr-4"
-            >
-              x
-            </div>
-          </div>
         </div>
 
-        <ul className="flex space-x-6 text-black text-3xl pr-50">
-          <li>
-            <Link href="/account" aria-label="Account">
-              <HiOutlineUser />
-            </Link>
-          </li>
-          <li>
-            {/* 👇 replaced link+icon with the working cart button */}
-            <CartButton />
-          </li>
-        </ul>
+        <div className="flex items-center space-x-6 text-black text-3xl pr-50">
+          <div className="relative">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="focus:outline-none"
+              aria-label="Toggle Search"
+            >
+              <HiOutlineSearch />
+            </button>
+
+            {showSearch && (
+              <div className="absolute top-full mt-2 right-0 flex items-center gap-3 border text-black border-gray-300 rounded-4xl p-2 w-[320px] bg-white shadow-lg">
+                <HiOutlineSearch className="text-xl"/>
+                <input
+                  onChange={(e) => setFilter(e.target.value)}
+                  type="text"
+                  value={filter}
+                  placeholder="Search"
+                  className="border-none outline-none text-black w-auto max-w-[150px] text-xl rounded-md"
+                />
+                <div
+                  onClick={() => {
+                    setFilter("");
+                    setIsOpen(false);
+                    setShowSearch(false);
+                  }}
+                  className="text-black cursor-pointer text-lg ml-20"
+                >
+                  ✕
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Link href="/account" aria-label="Account">
+            <HiOutlineUser />
+          </Link>
+
+          <CartButton />
+        </div>
       </div>
     </nav>
   );
