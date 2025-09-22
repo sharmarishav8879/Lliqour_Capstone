@@ -3,7 +3,8 @@ import AddToCartClient from "./AddToCartClient";
 import { getProductBySlug } from "@/lib/products";
 
 export default async function ProductDetail({ params }) {
-  const { slug } = await params;
+  // ✅ no await here
+  const { slug } = params;
 
   const product = getProductBySlug(slug);
 
@@ -17,7 +18,7 @@ export default async function ProductDetail({ params }) {
 
   return (
     <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
         <div>
           <img
             src={product.image}
@@ -33,32 +34,23 @@ export default async function ProductDetail({ params }) {
           {product.category && (
             <ul className="mt-3 space-y-1 leading-relaxed">
               {product.category && (
-                <li>
-                  <strong>Category:</strong> {product.category}
-                </li>
+                <li><strong>Category:</strong> {product.category}</li>
               )}
               {product.origin && (
-                <li>
-                  <strong>Origin:</strong> {product.origin}
-                </li>
+                <li><strong>Origin:</strong> {product.origin}</li>
               )}
               {product.abv && (
-                <li>
-                  <strong>ABV:</strong> {product.abv}
-                </li>
+                <li><strong>ABV:</strong> {product.abv}</li>
               )}
               {product.size && (
-                <li>
-                  <strong>Size:</strong> {product.size}
-                </li>
+                <li><strong>Size:</strong> {product.size}</li>
               )}
             </ul>
           )}
 
-          {product.description && (
-            <p className="mt-3">{product.description}</p>
-          )}
+          {product.description && <p className="mt-3">{product.description}</p>}
 
+          {/* ✅ client wrapper renders the Add button */}
           <AddToCartClient product={product} />
         </div>
       </div>
