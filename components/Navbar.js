@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { HiOutlineUser, HiOutlineShoppingCart } from "react-icons/hi2";
+import { HiOutlineUser } from "react-icons/hi2";
 import { HiOutlineSearch } from "react-icons/hi";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAllProducts } from "@/lib/products";
+import CartButton from "./CartButton";
 
 export default function Navbar() {
   const [filter, setFilter] = useState("");
@@ -16,19 +17,11 @@ export default function Navbar() {
   );
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
 
   useEffect(() => {
-    if (filter !== "") {
-      setIsOpen(true);
-    } else {
-      setIsOpen(false);
-    }
+    setIsOpen(filter !== "");
   }, [filter]);
 
   return (
@@ -45,7 +38,7 @@ export default function Navbar() {
                   <Link
                     href={`/products/${product.slug}`}
                     key={product.id}
-                    className={`bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 `}
+                    className="bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
                   >
                     <img
                       src={product.image}
@@ -95,21 +88,11 @@ export default function Navbar() {
 
         <div>
           <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
-            <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <a href="/#special-offer">Special Offers</a>
-            </li>
-            <li>
-              <a href="/#catalogue">Catalogue</a>
-            </li>
-            <li>
-              <Link href="/products">Products</Link>
-            </li>
-            <li>
-              <Link href="/contactUs">Contact Us</Link>
-            </li>
+            <li><Link href="/">Home</Link></li>
+            <li><a href="/#special-offer">Special Offers</a></li>
+            <li><a href="/#catalogue">Catalogue</a></li>
+            <li><Link href="/products">Products</Link></li>
+            <li><Link href="/contactUs">Contact Us</Link></li>
           </ul>
 
           {/* Search Bar */}
@@ -120,14 +103,11 @@ export default function Navbar() {
               type="text"
               value={filter}
               placeholder="Search"
-              className="border-none outline-none ml-2 text-black w-full "
+              className="border-none outline-none ml-2 text-black w-full"
             />
             <div
-              onClick={() => {
-                setFilter("");
-                setIsOpen(false);
-              }}
-              className="text-black  cursor-pointer mr-4"
+              onClick={() => { setFilter(""); setIsOpen(false); }}
+              className="text-black cursor-pointer mr-4"
             >
               x
             </div>
@@ -141,9 +121,8 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <Link href="" aria-label="Cart">
-              <HiOutlineShoppingCart />
-            </Link>
+            {/* 👇 replaced link+icon with the working cart button */}
+            <CartButton />
           </li>
         </ul>
       </div>

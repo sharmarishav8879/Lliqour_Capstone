@@ -3,6 +3,10 @@ import "./globals.css";
 import Navbar from "../components/Navbar";
 import { AuthContextProvider } from "./auth/_util/auth-context";
 
+// ✅ use relative paths from app/layout.js
+import { CartProvider } from "./context/CartProvider";
+import MiniCart from "../components/MiniCart";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -21,13 +25,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthContextProvider>
-          <Navbar />
-          <main>{children}</main>
-        </AuthContextProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* 👇 Cart provider wraps the app; auth remains inside it */}
+        <CartProvider>
+          <AuthContextProvider>
+            <Navbar />
+            <main>{children}</main>
+            {/* mounted once so drawer can open from anywhere */}
+            <MiniCart />
+          </AuthContextProvider>
+        </CartProvider>
       </body>
     </html>
   );
