@@ -10,10 +10,25 @@ import { getAllProducts } from "@/lib/products";
 export default function Navbar() {
   const [filter, setFilter] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [order, setOrder] = useState("asc");
+  const [filterProducts, setFilterProducts] = useState([]);
 
-  const filterProducts = getAllProducts().filter((product) =>
-    product.name.toLowerCase().includes(filter.toLowerCase())
-  );
+  const handleOrderType = () => {
+    setOrder(order === "asc" ? "desc" : "asc");
+  };
+
+  useEffect(() => {
+    const filteredProducts = getAllProducts().filter((product) =>
+      product.name.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    if (order === "asc") {
+      filteredProducts.sort((a, b) => a.price - b.price);
+    } else {
+      filteredProducts.sort((a, b) => b.price - a.price);
+    }
+    setFilterProducts(filteredProducts);
+  }, [filter, order]);
 
   useEffect(() => {
     if (isOpen) {
@@ -38,7 +53,18 @@ export default function Navbar() {
           onClick={(e) => e.stopPropagation()}
           className="fixed inset-0 top-[135px] left-0 w-full h-screen bg-black/30 flex items-start justify-center font-serif p-6"
         >
-          <div className="bg-white   max-h-[80vh] overflow-y-auto rounded-2xl shadow-lg p-6">
+          <div className="bg-white max-h-[80vh] overflow-y-auto rounded-2xl shadow-lg p-6">
+            <div>
+              <select
+                value={order}
+                onChange={handleOrderType}
+                className="mb-4 align-bottom p-2 border border-gray-300 rounded text-orange-500 font-serif"
+              >
+                <option disabled>Sort by</option>
+                <option>Price: Low to High</option>
+                <option>Price: High to Low</option>
+              </select>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 ">
               {filterProducts.length > 0 ? (
                 filterProducts.map((product) => (
