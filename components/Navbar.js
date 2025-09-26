@@ -15,14 +15,26 @@ export default function Navbar() {
   const [filterProducts, setFilterProducts] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
 
+  const [selectedCategory, setSelectedCategory] = useState("");
+
   const handleOrderType = () => {
     setOrder(order === "asc" ? "desc" : "asc");
   };
 
+  const handleCategoryType = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
   useEffect(() => {
-    const filteredProducts = getAllProducts().filter((product) =>
+    let filteredProducts = getAllProducts().filter((product) =>
       product.name.toLowerCase().includes(filter.toLowerCase())
     );
+
+    if (selectedCategory) {
+      filteredProducts = filteredProducts.filter(
+        (product) => product.category === selectedCategory
+      );
+    }
 
     if (order === "asc") {
       filteredProducts.sort((a, b) => a.price - b.price);
@@ -30,7 +42,7 @@ export default function Navbar() {
       filteredProducts.sort((a, b) => b.price - a.price);
     }
     setFilterProducts(filteredProducts);
-  }, [filter, order]);
+  }, [filter, order, selectedCategory]);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
@@ -48,7 +60,7 @@ export default function Navbar() {
           className="fixed inset-0 top-[135px] left-0 w-full h-screen bg-black/30 flex items-start justify-center font-serif p-6"
         >
           <div className="bg-white max-h-[80vh] overflow-y-auto rounded-2xl shadow-lg p-6">
-            <div>
+            <div className="flex flex-row gap-2">
               <select
                 value={order}
                 onChange={handleOrderType}
@@ -57,6 +69,26 @@ export default function Navbar() {
                 <option disabled>Sort by</option>
                 <option>Price: Low to High</option>
                 <option>Price: High to Low</option>
+              </select>
+
+              <select
+                onChange={handleCategoryType}
+                defaultValue=""
+                className="mb-4 align-bottom p-3 border border-gray-300 rounded text-orange-500 font-serif"
+              >
+                <option
+                  value={selectedCategory}
+                  disabled
+                  className="text-black"
+                >
+                  Category
+                </option>
+                <option value="Whisky">Whisky</option>
+                <option value="Vodka">Vodka</option>
+                <option value="Wine">Wine</option>
+                <option value="Beer">Beer</option>
+                <option value="Rum">Rum</option>
+                <option value="Tequila">Tequila</option>
               </select>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 ">
@@ -141,7 +173,7 @@ export default function Navbar() {
 
             {showSearch && (
               <div className="absolute top-full mt-2 right-0 flex items-center gap-3 border text-black border-gray-300 rounded-4xl p-2 w-[320px] bg-white shadow-lg">
-                <HiOutlineSearch className="text-xl"/>
+                <HiOutlineSearch className="text-xl" />
                 <input
                   onChange={(e) => setFilter(e.target.value)}
                   type="text"
