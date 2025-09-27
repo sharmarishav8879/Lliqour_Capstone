@@ -7,6 +7,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAllProducts } from "@/lib/products";
 import CartButton from "./CartButton";
+import { auth, db } from "@/app/auth/_util/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Navbar() {
   const [filter, setFilter] = useState("");
@@ -14,6 +17,7 @@ export default function Navbar() {
   const [order, setOrder] = useState("asc");
   const [filterProducts, setFilterProducts] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
+  const [role, setRole] = useState("guest");
 
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -59,6 +63,37 @@ export default function Navbar() {
   useEffect(() => {
     setIsOpen(filter !== "");
   }, [filter]);
+
+  useEffect(() => {
+    const fetchRole = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setRole("guest");
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userDocSnapshot = await getDoc(userRef);
+
+      if (userDocSnapshot.exists()) {
+        const fetchedRole = userDocSnapshot.data().role?.trim().toLowerCase();
+        setRole(fetchedRole);
+      } else {
+        setRole("guest");
+      }
+    });
+
+    return () => fetchRole();
+  }, []);
+
+  if (role === null) {
+    return (
+      <div>
+        <h1 className="text-4xl font-bold mt-30 text-orange-500 font-serif flex justify-center">
+          Loading...
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
@@ -154,18 +189,32 @@ export default function Navbar() {
 
         <div className="absolute left-1/2 transform -translate-x-1/2">
           <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
-            <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <a href="/#special-offer">Special Offers</a>
-            </li>
-            <li>
-              <a href="/#catalogue">Catalogue</a>
-            </li>
-            <li>
-              <Link href="/contactUs">Contact Us</Link>
-            </li>
+            {role === "admin" ? (
+              <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
+                <li>
+                  <Link href="/admin">Admin</Link>
+                </li>
+
+                <li>
+                  <Link href="/catalogue">Catalogue</Link>
+                </li>
+              </ul>
+            ) : (
+              <>
+                <li>
+                  <Link href="/">Home</Link>
+                </li>
+                <li>
+                  <a href="/#special-offer">Special Offers</a>
+                </li>
+                <li>
+                  <a href="/#catalogue">Catalogue</a>
+                </li>
+                <li>
+                  <Link href="/contactUs">Contact Us</Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
 
@@ -207,7 +256,7 @@ export default function Navbar() {
             <HiOutlineUser />
           </Link>
 
-          <CartButton />
+          {role === "guest" && <CartButton />}
         </div>
       </div>
     </nav>

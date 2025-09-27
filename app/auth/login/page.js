@@ -1,9 +1,10 @@
 "use client";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { auth } from "../_util/firebase";
+import { use, useState } from "react";
+import { auth, db } from "../_util/firebase";
 import { useUserAuth } from "../_util/auth-context";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Login() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function Login() {
         alert("Please fill in all fields");
         return;
       }
+
       const userCredentials = await signInWithEmailAndPassword(
         auth,
         email,
@@ -27,7 +29,19 @@ export default function Login() {
       );
       const user = userCredentials.user;
       console.log("User logged in: ", user);
-      router.push("/account");
+      const userRef = doc(db, "users", user.uid);
+      const userDocSnapshot = await getDoc(userRef);
+
+      if (userDocSnapshot.exists()) {
+        const { role } = userDocSnapshot.data();
+        if (role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/account");
+        }
+      } else {
+        alert("User not found");
+      }
     } catch (error) {
       alert(`Error logging in:  ${error.message}`);
     }
