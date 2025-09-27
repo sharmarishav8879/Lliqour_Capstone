@@ -26,22 +26,30 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    let filteredProducts = getAllProducts().filter((product) =>
-      product.name.toLowerCase().includes(filter.toLowerCase())
-    );
+    const fetchProducts = async () => {
+      try {
+        const allProducts = await getAllProducts();
+        let filteredProducts = allProducts.filter((product) =>
+          product.name.toLowerCase().includes(filter.toLowerCase())
+        );
+        if (selectedCategory) {
+          filteredProducts = filteredProducts.filter(
+            (product) => product.category === selectedCategory
+          );
+        }
 
-    if (selectedCategory) {
-      filteredProducts = filteredProducts.filter(
-        (product) => product.category === selectedCategory
-      );
-    }
+        if (order === "asc") {
+          filteredProducts.sort((a, b) => a.price - b.price);
+        } else {
+          filteredProducts.sort((a, b) => b.price - a.price);
+        }
+        setFilterProducts(filteredProducts);
+      } catch (error) {
+        alert(`Error fetching products:  ${error.message}`);
+      }
+    };
 
-    if (order === "asc") {
-      filteredProducts.sort((a, b) => a.price - b.price);
-    } else {
-      filteredProducts.sort((a, b) => b.price - a.price);
-    }
-    setFilterProducts(filteredProducts);
+    fetchProducts();
   }, [filter, order, selectedCategory]);
 
   useEffect(() => {

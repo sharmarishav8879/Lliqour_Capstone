@@ -38,13 +38,21 @@ export default function Home() {
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
 
   useEffect(() => {
-    const products = getAllProducts();
-    if (Array.isArray(products)) {
-      setItems(products);
-    } else {
-      console.warn("getAllProducts did not return an array");
-      setItems([]);
-    }
+    const fetchProducts = async () => {
+      try {
+        const products = await getAllProducts();
+        if (Array.isArray(products)) {
+          setItems(products);
+        } else {
+          console.warn("getAllProducts did not return an array");
+          setItems([]);
+        }
+      } catch (error) {
+        alert(`Error fetching products:  ${error.message}`);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   return (
