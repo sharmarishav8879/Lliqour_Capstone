@@ -7,6 +7,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAllProducts } from "@/lib/products";
 import CartButton from "./CartButton";
+import { auth, db } from "@/app/auth/_util/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Navbar() {
   const [filter, setFilter] = useState("");
@@ -14,23 +17,44 @@ export default function Navbar() {
   const [order, setOrder] = useState("asc");
   const [filterProducts, setFilterProducts] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
+  const [role, setRole] = useState("guest");
+
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const handleOrderType = () => {
     setOrder(order === "asc" ? "desc" : "asc");
   };
 
-  useEffect(() => {
-    const filteredProducts = getAllProducts().filter((product) =>
-      product.name.toLowerCase().includes(filter.toLowerCase())
-    );
+  const handleCategoryType = (e) => {
+    setSelectedCategory(e.target.value);
+  };
 
-    if (order === "asc") {
-      filteredProducts.sort((a, b) => a.price - b.price);
-    } else {
-      filteredProducts.sort((a, b) => b.price - a.price);
-    }
-    setFilterProducts(filteredProducts);
-  }, [filter, order]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const allProducts = await getAllProducts();
+        let filteredProducts = allProducts.filter((product) =>
+          product.name.toLowerCase().includes(filter.toLowerCase())
+        );
+        if (selectedCategory) {
+          filteredProducts = filteredProducts.filter(
+            (product) => product.category === selectedCategory
+          );
+        }
+
+        if (order === "asc") {
+          filteredProducts.sort((a, b) => a.price - b.price);
+        } else {
+          filteredProducts.sort((a, b) => b.price - a.price);
+        }
+        setFilterProducts(filteredProducts);
+      } catch (error) {
+        alert(`Error fetching products:  ${error.message}`);
+      }
+    };
+
+    fetchProducts();
+  }, [filter, order, selectedCategory]);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
@@ -40,6 +64,37 @@ export default function Navbar() {
     setIsOpen(filter !== "");
   }, [filter]);
 
+  useEffect(() => {
+    const fetchRole = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setRole("guest");
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userDocSnapshot = await getDoc(userRef);
+
+      if (userDocSnapshot.exists()) {
+        const fetchedRole = userDocSnapshot.data().role?.trim().toLowerCase();
+        setRole(fetchedRole);
+      } else {
+        setRole("guest");
+      }
+    });
+
+    return () => fetchRole();
+  }, []);
+
+  if (role === null) {
+    return (
+      <div>
+        <h1 className="text-4xl font-bold mt-30 text-orange-500 font-serif flex justify-center">
+          Loading...
+        </h1>
+      </div>
+    );
+  }
+
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
       {filter !== "" && (
@@ -48,7 +103,7 @@ export default function Navbar() {
           className="fixed inset-0 top-[135px] left-0 w-full h-screen bg-black/30 flex items-start justify-center font-serif p-6"
         >
           <div className="bg-white max-h-[80vh] overflow-y-auto rounded-2xl shadow-lg p-6">
-            <div>
+            <div className="flex flex-row gap-2">
               <select
                 value={order}
                 onChange={handleOrderType}
@@ -57,6 +112,26 @@ export default function Navbar() {
                 <option disabled>Sort by</option>
                 <option>Price: Low to High</option>
                 <option>Price: High to Low</option>
+              </select>
+
+              <select
+                onChange={handleCategoryType}
+                defaultValue=""
+                className="mb-4 align-bottom p-3 border border-gray-300 rounded text-orange-500 font-serif"
+              >
+                <option
+                  value={selectedCategory}
+                  disabled
+                  className="text-black"
+                >
+                  Category
+                </option>
+                <option value="Whisky">Whisky</option>
+                <option value="Vodka">Vodka</option>
+                <option value="Wine">Wine</option>
+                <option value="Beer">Beer</option>
+                <option value="Rum">Rum</option>
+                <option value="Tequila">Tequila</option>
               </select>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 ">
@@ -114,18 +189,32 @@ export default function Navbar() {
 
         <div className="absolute left-1/2 transform -translate-x-1/2">
           <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
-            <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <a href="/#special-offer">Special Offers</a>
-            </li>
-            <li>
-              <a href="/#catalogue">Catalogue</a>
-            </li>
-            <li>
-              <Link href="/contactUs">Contact Us</Link>
-            </li>
+            {role === "admin" ? (
+              <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
+                <li>
+                  <Link href="/admin">Admin</Link>
+                </li>
+
+                <li>
+                  <Link href="/catalogue">Catalogue</Link>
+                </li>
+              </ul>
+            ) : (
+              <>
+                <li>
+                  <Link href="/">Home</Link>
+                </li>
+                <li>
+                  <a href="/#special-offer">Special Offers</a>
+                </li>
+                <li>
+                  <a href="/#catalogue">Catalogue</a>
+                </li>
+                <li>
+                  <Link href="/contactUs">Contact Us</Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
 
@@ -141,7 +230,7 @@ export default function Navbar() {
 
             {showSearch && (
               <div className="absolute top-full mt-2 right-0 flex items-center gap-3 border text-black border-gray-300 rounded-4xl p-2 w-[320px] bg-white shadow-lg">
-                <HiOutlineSearch className="text-xl"/>
+                <HiOutlineSearch className="text-xl" />
                 <input
                   onChange={(e) => setFilter(e.target.value)}
                   type="text"
@@ -167,7 +256,7 @@ export default function Navbar() {
             <HiOutlineUser />
           </Link>
 
-          <CartButton />
+          {role === "guest" && <CartButton />}
         </div>
       </div>
     </nav>

@@ -6,7 +6,7 @@ export default async function ProductDetail({ params }) {
   // ✅ no await here
   const { slug } = params;
 
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     return (
@@ -29,21 +29,31 @@ export default async function ProductDetail({ params }) {
 
         <div>
           <h1 className="text-3xl font-extrabold">{product.name}</h1>
-          <div className="mt-2 text-2xl font-extrabold">${product.price.toFixed(2)}</div>
+          <div className="mt-2 text-2xl font-extrabold">
+            ${product.price.toFixed(2)}
+          </div>
 
           {product.category && (
             <ul className="mt-3 space-y-1 leading-relaxed">
               {product.category && (
-                <li><strong>Category:</strong> {product.category}</li>
+                <li>
+                  <strong>Category:</strong> {product.category}
+                </li>
               )}
               {product.origin && (
-                <li><strong>Origin:</strong> {product.origin}</li>
+                <li>
+                  <strong>Origin:</strong> {product.origin}
+                </li>
               )}
               {product.abv && (
-                <li><strong>ABV:</strong> {product.abv}</li>
+                <li>
+                  <strong>ABV:</strong> {product.abv}
+                </li>
               )}
               {product.size && (
-                <li><strong>Size:</strong> {product.size}</li>
+                <li>
+                  <strong>Size:</strong> {product.size}
+                </li>
               )}
             </ul>
           )}

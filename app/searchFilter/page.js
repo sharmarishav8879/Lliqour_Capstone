@@ -1,13 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllProducts } from "../../lib/products";
 
 export default function SearchFilter() {
   const [filter, setFilter] = useState("");
 
-  const filteredProducts = getAllProducts().filter((product) =>
-    product.name.toLowerCase().includes(filter.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const allProducts = await getAllProducts();
+      const filteredProducts = allProducts().filter((product) =>
+        product.name.toLowerCase().includes(filter.toLowerCase())
+      );
+      setFilter(filteredProducts);
+    };
+
+    fetchProducts();
+  }, [filter]);
+
   return (
     <main>
       <h1 className="text-4xl font-bold mt-30 text-orange-500 font-serif flex justify-center">
