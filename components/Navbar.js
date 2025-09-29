@@ -85,16 +85,6 @@ export default function Navbar() {
     return () => fetchRole();
   }, []);
 
-  if (role === null) {
-    return (
-      <div>
-        <h1 className="text-4xl font-bold mt-30 text-orange-500 font-serif flex justify-center">
-          Loading...
-        </h1>
-      </div>
-    );
-  }
-
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
       {filter !== "" && (
@@ -198,6 +188,9 @@ export default function Navbar() {
                 <li>
                   <Link href="/catalogue">Catalogue</Link>
                 </li>
+                <li>
+                  <Link href="/admin/customer_support">Customer Support</Link>
+                </li>
               </ul>
             ) : (
               <>
@@ -256,7 +249,7 @@ export default function Navbar() {
             <HiOutlineUser />
           </Link>
 
-          {role === "guest" && <CartButton />}
+          <CartButton />
         </div>
       </div>
     </nav>
