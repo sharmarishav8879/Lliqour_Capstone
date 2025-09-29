@@ -15,60 +15,73 @@ import CartButton from "./CartButton";
 import MiniCart from "./MiniCart";
 
 export default function Navbar() {
-  // --- role / auth ---
+  // ---------------- state ----------------
   const [role, setRole] = useState("guest");
-  useEffect(() => {
-    const off = onAuthStateChanged(auth, async (user) => {
-      if (!user) return setRole("guest");
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        setRole((snap.data()?.role || "guest").toLowerCase());
-      } catch {
-        setRole("guest");
-      }
-    });
-    return () => off();
-  }, []);
 
-  // --- search ---
   const [showSearch, setShowSearch] = useState(false);
   const [filter, setFilter] = useState("");
-  const [orderAsc, setOrderAsc] = useState(true);
   const [category, setCategory] = useState("");
+  const [orderAsc, setOrderAsc] = useState(true);
   const [results, setResults] = useState([]);
 
-  useEffect(() => {
-    document.body.style.overflow = showSearch ? "hidden" : "auto";
-  }, [showSearch]);
-
-  useEffect(() => {
-    if (!showSearch) return;
-    (async () => {
-      try {
-        const all = await getAllProducts();
-        let list = all.filter((p) =>
-          (p.name || "").toLowerCase().includes(filter.toLowerCase())
-        );
-        if (category) list = list.filter((p) => p.category === category);
-        list.sort((a, b) => (orderAsc ? a.price - b.price : b.price - a.price));
-        setResults(list);
-      } catch (e) {
-        console.error("search fetch failed", e);
-        setResults([]);
-      }
-    })();
-  }, [showSearch, filter, orderAsc, category]);
-
-  // --- cart popover ---
   const [isCartOpen, setCartOpen] = useState(false);
 
-  // Close cart when we land on checkout
   const pathname = usePathname();
+
+  // ---------------- effects ----------------
+
+  // Close cart when we land on /checkout
   useEffect(() => {
     if (pathname?.startsWith("/checkout")) setCartOpen(false);
   }, [pathname]);
 
-  // Helpers
+  // Fetch role from Firestore
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setRole("guest");
+        return;
+      }
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const fetched = snap.data()?.role?.trim().toLowerCase();
+        setRole(fetched || "guest");
+      } catch {
+        setRole("guest");
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Simple client-side product search
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const all = (await getAllProducts()) || [];
+
+        let list = all;
+        if (filter.trim()) {
+          const q = filter.trim().toLowerCase();
+          list = list.filter((p) => p.name?.toLowerCase().includes(q));
+        }
+        if (category) {
+          list = list.filter((p) => p.category === category);
+        }
+        list.sort((a, b) => (orderAsc ? a.price - b.price : b.price - a.price));
+
+        if (!cancelled) setResults(list);
+      } catch (e) {
+        console.error("search fetch failed", e);
+        if (!cancelled) setResults([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [filter, category, orderAsc]);
+
+  // ---------------- nav links ----------------
   const navLinks = useMemo(() => {
     if (role === "admin") {
       return [
@@ -85,6 +98,7 @@ export default function Navbar() {
     ];
   }, [role]);
 
+  // ---------------- render ----------------
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
       {/* Search overlay */}
@@ -152,7 +166,6 @@ export default function Navbar() {
                     className="border rounded-xl overflow-hidden hover:shadow transition"
                     onClick={() => setShowSearch(false)}
                   >
-                    {/* using img for simplicity */}
                     <img
                       src={p.image}
                       alt={p.name}
@@ -235,7 +248,7 @@ export default function Navbar() {
                   </button>
                 </div>
                 <div className="p-3">
-                  {/* MiniCart already has the /checkout link; the route effect will close it */}
+                  {/* MiniCart includes the /checkout link; route effect will close it */}
                   <MiniCart />
                 </div>
               </div>
