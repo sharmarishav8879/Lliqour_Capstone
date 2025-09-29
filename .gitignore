@@ -22,16 +22,24 @@
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
+
+# editors/IDE
+.vscode/
+.idea/
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.eslintcache
 
-# env files (can opt-in for committing if needed)
+# env files (keep real secrets ignored, allow examples)
 .env*
+!.env.example
+!.env.local.example
 
 # vercel
 .vercel

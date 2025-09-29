@@ -2,14 +2,17 @@
 
 import { useCart } from "../app/context/CartProvider";
 
-export default function CartButton() {
-  const { count, setOpen } = useCart();
+export default function CartButton({ setOpen }) {
+  const { items = [] } = useCart();
+  const count = items.reduce((sum, i) => sum + (i.qty || 0), 0);
+
   return (
     <button
+      type="button"
       aria-label="Cart"
-      onClick={() => setOpen(true)}
-      className="relative inline-flex items-center justify-center"
       title="Cart"
+      onClick={() => setOpen && setOpen(true)}
+      className="relative inline-flex items-center justify-center"
     >
       <span style={{ fontSize: 22 }}>🛒</span>
       {count > 0 && (

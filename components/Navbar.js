@@ -1,131 +1,125 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { HiOutlineUser } from "react-icons/hi2";
 import { HiOutlineSearch } from "react-icons/hi";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getAllProducts } from "@/lib/products";
-import CartButton from "./CartButton";
-import { auth, db } from "@/app/auth/_util/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+
+import { getAllProducts } from "@/lib/products";
+import { auth, db } from "@/lib/firebase";
+import CartButton from "./CartButton";
+import MiniCart from "./MiniCart";
 
 export default function Navbar() {
-  const [filter, setFilter] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const [order, setOrder] = useState("asc");
-  const [filterProducts, setFilterProducts] = useState([]);
-  const [showSearch, setShowSearch] = useState(false);
+  // --- role / auth ---
   const [role, setRole] = useState("guest");
-
-  const [selectedCategory, setSelectedCategory] = useState("");
-
-  const handleOrderType = () => {
-    setOrder(order === "asc" ? "desc" : "asc");
-  };
-
-  const handleCategoryType = (e) => {
-    setSelectedCategory(e.target.value);
-  };
-
   useEffect(() => {
-    const fetchProducts = async () => {
+    const off = onAuthStateChanged(auth, async (user) => {
+      if (!user) return setRole("guest");
       try {
-        const allProducts = await getAllProducts();
-        let filteredProducts = allProducts.filter((product) =>
-          product.name.toLowerCase().includes(filter.toLowerCase())
-        );
-        if (selectedCategory) {
-          filteredProducts = filteredProducts.filter(
-            (product) => product.category === selectedCategory
-          );
-        }
-
-        if (order === "asc") {
-          filteredProducts.sort((a, b) => a.price - b.price);
-        } else {
-          filteredProducts.sort((a, b) => b.price - a.price);
-        }
-        setFilterProducts(filteredProducts);
-      } catch (error) {
-        alert(`Error fetching products:  ${error.message}`);
-      }
-    };
-
-    fetchProducts();
-  }, [filter, order, selectedCategory]);
-
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "auto";
-  }, [isOpen]);
-
-  useEffect(() => {
-    setIsOpen(filter !== "");
-  }, [filter]);
-
-  useEffect(() => {
-    const fetchRole = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setRole("guest");
-        return;
-      }
-
-      const userRef = doc(db, "users", user.uid);
-      const userDocSnapshot = await getDoc(userRef);
-
-      if (userDocSnapshot.exists()) {
-        const fetchedRole = userDocSnapshot.data().role?.trim().toLowerCase();
-        setRole(fetchedRole);
-      } else {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        setRole((snap.data()?.role || "guest").toLowerCase());
+      } catch {
         setRole("guest");
       }
     });
-
-    return () => fetchRole();
+    return () => off();
   }, []);
 
-  if (role === null) {
-    return (
-      <div>
-        <h1 className="text-4xl font-bold mt-30 text-orange-500 font-serif flex justify-center">
-          Loading...
-        </h1>
-      </div>
-    );
-  }
+  // --- search ---
+  const [showSearch, setShowSearch] = useState(false);
+  const [filter, setFilter] = useState("");
+  const [orderAsc, setOrderAsc] = useState(true);
+  const [category, setCategory] = useState("");
+  const [results, setResults] = useState([]);
+
+  useEffect(() => {
+    document.body.style.overflow = showSearch ? "hidden" : "auto";
+  }, [showSearch]);
+
+  useEffect(() => {
+    if (!showSearch) return;
+    (async () => {
+      try {
+        const all = await getAllProducts();
+        let list = all.filter((p) =>
+          (p.name || "").toLowerCase().includes(filter.toLowerCase())
+        );
+        if (category) list = list.filter((p) => p.category === category);
+        list.sort((a, b) => (orderAsc ? a.price - b.price : b.price - a.price));
+        setResults(list);
+      } catch (e) {
+        console.error("search fetch failed", e);
+        setResults([]);
+      }
+    })();
+  }, [showSearch, filter, orderAsc, category]);
+
+  // --- cart popover ---
+  const [isCartOpen, setCartOpen] = useState(false);
+
+  // Close cart when we land on checkout
+  const pathname = usePathname();
+  useEffect(() => {
+    if (pathname?.startsWith("/checkout")) setCartOpen(false);
+  }, [pathname]);
+
+  // Helpers
+  const navLinks = useMemo(() => {
+    if (role === "admin") {
+      return [
+        { href: "/admin", label: "Admin" },
+        { href: "/admin/insights", label: "Insights" },
+        { href: "/catalogue", label: "Catalogue" },
+      ];
+    }
+    return [
+      { href: "/", label: "Home" },
+      { href: "/#special-offer", label: "Special Offers", anchor: true },
+      { href: "/#catalogue", label: "Catalogue", anchor: true },
+      { href: "/contactUs", label: "Contact Us" },
+    ];
+  }, [role]);
 
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
-      {filter !== "" && (
+      {/* Search overlay */}
+      {showSearch && (
         <div
-          onClick={(e) => e.stopPropagation()}
-          className="fixed inset-0 top-[135px] left-0 w-full h-screen bg-black/30 flex items-start justify-center font-serif p-6"
+          className="fixed inset-0 top-[96px] bg-black/40 flex items-start justify-center p-6"
+          onClick={() => setShowSearch(false)}
         >
-          <div className="bg-white max-h-[80vh] overflow-y-auto rounded-2xl shadow-lg p-6">
-            <div className="flex flex-row gap-2">
+          <div
+            className="bg-white text-black w-full max-w-5xl rounded-2xl shadow-xl p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex gap-3 items-center mb-4">
+              <HiOutlineSearch className="text-xl" />
+              <input
+                autoFocus
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="Search products"
+                className="flex-1 outline-none border border-gray-300 rounded-md px-3 py-2"
+              />
               <select
-                value={order}
-                onChange={handleOrderType}
-                className="mb-4 align-bottom p-2 border border-gray-300 rounded text-orange-500 font-serif"
+                value={orderAsc ? "asc" : "desc"}
+                onChange={(e) => setOrderAsc(e.target.value === "asc")}
+                className="border border-gray-300 rounded-md px-3 py-2"
               >
-                <option disabled>Sort by</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
+                <option value="asc">Price: Low → High</option>
+                <option value="desc">Price: High → Low</option>
               </select>
-
               <select
-                onChange={handleCategoryType}
-                defaultValue=""
-                className="mb-4 align-bottom p-3 border border-gray-300 rounded text-orange-500 font-serif"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2"
               >
-                <option
-                  value={selectedCategory}
-                  disabled
-                  className="text-black"
-                >
-                  Category
-                </option>
+                <option value="">All categories</option>
                 <option value="Whisky">Whisky</option>
                 <option value="Vodka">Vodka</option>
                 <option value="Wine">Wine</option>
@@ -133,40 +127,45 @@ export default function Navbar() {
                 <option value="Rum">Rum</option>
                 <option value="Tequila">Tequila</option>
               </select>
+              <button
+                onClick={() => {
+                  setFilter("");
+                  setCategory("");
+                  setShowSearch(false);
+                }}
+                className="px-3 py-2 rounded-md border"
+              >
+                Close
+              </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 ">
-              {filterProducts.length > 0 ? (
-                filterProducts.map((product) => (
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {results.length === 0 ? (
+                <div className="col-span-full text-center text-gray-600 py-8">
+                  No products found.
+                </div>
+              ) : (
+                results.map((p) => (
                   <Link
-                    href={`/products/${product.slug}`}
-                    key={product.id}
-                    className="bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
+                    key={p.id}
+                    href={`/products/${p.slug}`}
+                    className="border rounded-xl overflow-hidden hover:shadow transition"
+                    onClick={() => setShowSearch(false)}
                   >
+                    {/* using img for simplicity */}
                     <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-56 object-cover"
-                      onClick={(e) => e.stopPropagation()}
+                      src={p.image}
+                      alt={p.name}
+                      className="w-full h-48 object-cover bg-gray-100"
                     />
-                    <div className="p-4 flex flex-col justify-between h-40">
-                      <div className="font-bold text-lg text-black">
-                        {product.name}
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {product.size ? `${product.size} • ` : ""}
-                        {product.abv ? `${product.abv} • ` : ""}
-                        {product.origin || ""}
-                      </div>
-                      <div className="mt-2 font-extrabold text-gray-900">
-                        ${product.price.toFixed(2)}
+                    <div className="p-3">
+                      <div className="font-semibold truncate">{p.name}</div>
+                      <div className="text-sm text-gray-600">
+                        ${Number(p.price).toFixed(2)}
                       </div>
                     </div>
                   </Link>
                 ))
-              ) : (
-                <p className="text-center text-orange-500 text-lg">
-                  No products found.
-                </p>
               )}
             </div>
           </div>
@@ -174,89 +173,74 @@ export default function Navbar() {
       )}
 
       <div className="flex items-center justify-between relative">
-        <div className="flex items-center pl-50">
+        {/* Left: Logo */}
+        <div className="flex items-center">
           <Image
             src="/Logo.jpg"
-            className="border-orange-500 border-2 rounded-full"
             alt="Legacy Liquor Logo"
             width={50}
             height={50}
+            className="rounded-full border-2 border-orange-500"
           />
           <span className="ml-3 text-black text-2xl font-bold font-serif">
             Legacy Liquor
           </span>
         </div>
 
-        <div className="absolute left-1/2 transform -translate-x-1/2">
+        {/* Center: Nav */}
+        <div className="absolute left-1/2 -translate-x-1/2">
           <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
-            {role === "admin" ? (
-              <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
-                <li>
-                  <Link href="/admin">Admin</Link>
+            {navLinks.map((l) =>
+              l.anchor ? (
+                <li key={l.label}>
+                  <a href={l.href}>{l.label}</a>
                 </li>
-
-                <li>
-                  <Link href="/catalogue">Catalogue</Link>
+              ) : (
+                <li key={l.label}>
+                  <Link href={l.href}>{l.label}</Link>
                 </li>
-              </ul>
-            ) : (
-              <>
-                <li>
-                  <Link href="/">Home</Link>
-                </li>
-                <li>
-                  <a href="/#special-offer">Special Offers</a>
-                </li>
-                <li>
-                  <a href="/#catalogue">Catalogue</a>
-                </li>
-                <li>
-                  <Link href="/contactUs">Contact Us</Link>
-                </li>
-              </>
+              )
             )}
           </ul>
         </div>
 
-        <div className="flex items-center space-x-6 text-black text-3xl pr-50">
-          <div className="relative">
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="focus:outline-none"
-              aria-label="Toggle Search"
-            >
-              <HiOutlineSearch />
-            </button>
+        {/* Right icons */}
+        <div className="flex items-center space-x-6 text-black text-3xl">
+          <button
+            aria-label="Toggle Search"
+            className="focus:outline-none"
+            onClick={() => setShowSearch((v) => !v)}
+            title="Search"
+          >
+            <HiOutlineSearch />
+          </button>
 
-            {showSearch && (
-              <div className="absolute top-full mt-2 right-0 flex items-center gap-3 border text-black border-gray-300 rounded-4xl p-2 w-[320px] bg-white shadow-lg">
-                <HiOutlineSearch className="text-xl" />
-                <input
-                  onChange={(e) => setFilter(e.target.value)}
-                  type="text"
-                  value={filter}
-                  placeholder="Search"
-                  className="border-none outline-none text-black w-auto max-w-[150px] text-xl rounded-md"
-                />
-                <div
-                  onClick={() => {
-                    setFilter("");
-                    setIsOpen(false);
-                    setShowSearch(false);
-                  }}
-                  className="text-black cursor-pointer text-lg ml-20"
-                >
-                  ✕
+          <Link href="/account" aria-label="Account" title="Account">
+            <HiOutlineUser />
+          </Link>
+
+          {/* Cart icon + popover */}
+          <div className="relative">
+            <CartButton setOpen={setCartOpen} />
+            {isCartOpen && (
+              <div className="absolute right-0 mt-3 w-[340px] bg-white text-black rounded-xl shadow-2xl border">
+                <div className="flex items-center justify-between px-4 py-3 border-b">
+                  <div className="font-semibold text-lg">Your Cart</div>
+                  <button
+                    className="text-xl leading-none"
+                    aria-label="Close cart"
+                    onClick={() => setCartOpen(false)}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="p-3">
+                  {/* MiniCart already has the /checkout link; the route effect will close it */}
+                  <MiniCart />
                 </div>
               </div>
             )}
           </div>
-
-          <Link href="/account" aria-label="Account">
-            <HiOutlineUser />
-          </Link>
-
-          {role === "guest" && <CartButton />}
         </div>
       </div>
     </nav>
