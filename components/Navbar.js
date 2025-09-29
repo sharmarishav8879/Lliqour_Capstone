@@ -17,13 +17,11 @@ import MiniCart from "./MiniCart";
 export default function Navbar() {
   // ---------------- state ----------------
   const [role, setRole] = useState("guest");
-
   const [showSearch, setShowSearch] = useState(false);
   const [filter, setFilter] = useState("");
   const [category, setCategory] = useState("");
   const [orderAsc, setOrderAsc] = useState(true);
   const [results, setResults] = useState([]);
-
   const [isCartOpen, setCartOpen] = useState(false);
 
   const pathname = usePathname();
@@ -232,7 +230,6 @@ export default function Navbar() {
             <HiOutlineUser />
           </Link>
 
-
           {/* Cart icon + popover */}
           <div className="relative">
             <CartButton setOpen={setCartOpen} />
@@ -249,29 +246,7 @@ export default function Navbar() {
                   </button>
                 </div>
                 <div className="p-3">
-                  {/* MiniCart includes the /checkout link; route effect will close it */}
                   <MiniCart />
-
-            {showSearch && (
-              <div className="absolute top-full mt-2 right-0 flex items-center gap-3 border text-black border-gray-300 rounded-4xl p-2 w-[320px] bg-white shadow-lg font-serif">
-                <HiOutlineSearch className="text-xl" />
-                <input
-                  onChange={(e) => setFilter(e.target.value)}
-                  type="text"
-                  value={filter}
-                  placeholder="Search"
-                  className="border-none outline-none text-black w-auto max-w-[150px] text-xl rounded-md"
-                />
-                <div
-                  onClick={() => {
-                    setFilter("");
-                    setIsOpen(false);
-                    setShowSearch(false);
-                  }}
-                  className="text-black cursor-pointer text-lg ml-20"
-                >
-                  ✕
-
                 </div>
               </div>
             )}
