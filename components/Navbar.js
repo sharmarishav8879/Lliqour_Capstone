@@ -222,7 +222,7 @@ export default function Navbar() {
             </button>
 
             {showSearch && (
-              <div className="absolute top-full mt-2 right-0 flex items-center gap-3 border text-black border-gray-300 rounded-4xl p-2 w-[320px] bg-white shadow-lg">
+              <div className="absolute top-full mt-2 right-0 flex items-center gap-3 border text-black border-gray-300 rounded-4xl p-2 w-[320px] bg-white shadow-lg font-serif">
                 <HiOutlineSearch className="text-xl" />
                 <input
                   onChange={(e) => setFilter(e.target.value)}

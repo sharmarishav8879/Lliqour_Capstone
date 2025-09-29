@@ -2,10 +2,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import { AuthContextProvider } from "./auth/_util/auth-context";
-
-// ✅ use relative paths from app/layout.js
 import { CartProvider } from "./context/CartProvider";
 import MiniCart from "../components/MiniCart";
+import Footer from "../components/Footer"; // 👈 import footer
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,12 +25,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* 👇 Cart provider wraps the app; auth remains inside it */}
         <CartProvider>
           <AuthContextProvider>
             <Navbar />
             <main>{children}</main>
-            {/* mounted once so drawer can open from anywhere */}
+            <Footer />
             <MiniCart />
           </AuthContextProvider>
         </CartProvider>
