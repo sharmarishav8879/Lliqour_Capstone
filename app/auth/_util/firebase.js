@@ -1,20 +1,19 @@
-// To tell firebase that we are using it in our project like adding it.
-import { initializeApp } from "firebase/app";
-// This will give all the authentication methods.
+// firebase.js
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-// This will give us access to the firestore database.
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyArxMudk2D7PpcyuaVSFzhvzK_iUkbm9pU",
-  authDomain: "lliqour-capstone.firebaseapp.com",
-  projectId: "lliqour-capstone",
-  storageBucket: "lliqour-capstone.firebasestorage.app",
-  messagingSenderId: "77810037721",
-  appId: "1:77810037721:web:3130da1a0e24e8b6dd9fc8",
+  apiKey: process.env.NEXT_PUBLIC_FB_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FB_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FB_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FB_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FB_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FB_APP_ID,
 };
 
-// To make firebase use the above config in our project.
-const app = initializeApp(firebaseConfig);
+// ✅ this line prevents the "already exists" error
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);

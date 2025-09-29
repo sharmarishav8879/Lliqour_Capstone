@@ -1,89 +1,76 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { loadCart, saveCart, subscribeCart } from "../../lib/cartSync";
 
-const CartCtx = createContext(null);
-const LS_KEY = "legacy_cart_v1";
+const CartCtx = createContext({
+  items: [],
+  add: () => {},
+  addItem: () => {},
+  remove: () => {},
+  setQty: () => {},
+  clear: () => {},
+});
+
+export const useCart = () => useContext(CartCtx);
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
-  const [open, setOpen] = useState(false);
 
-  // Load from localStorage
+  // hydrate + realtime
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch (e) {
-      console.warn("Cart load failed:", e);
-    }
+    let unsub;
+    (async () => {
+      try {
+        const initial = await loadCart();
+        setItems(initial);
+        unsub = await subscribeCart(setItems);
+      } catch (e) {
+        console.error("Cart hydrate failed:", e);
+      }
+    })();
+    return () => unsub && unsub();
   }, []);
 
-  // Persist to localStorage
+  // persist (debounced)
   useEffect(() => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(items));
-    } catch (e) {
-      console.warn("Cart save failed:", e);
-    }
+    const id = setTimeout(() => {
+      saveCart(items).catch((e) => console.error("Cart save failed:", e));
+    }, 350);
+    return () => clearTimeout(id);
   }, [items]);
 
-  // Actions
-  function addItem(item, qty = 1) {
-    // item: { id, title, priceCents, image?, sku? }
+  const add = (p, qty = 1) =>
     setItems((prev) => {
-      const idx = prev.findIndex((p) => p.id === item.id);
-      if (idx >= 0) {
+      const i = prev.findIndex((x) => x.productId === p.id);
+      if (i >= 0) {
         const copy = [...prev];
-        copy[idx] = { ...copy[idx], qty: copy[idx].qty + qty };
+        copy[i] = { ...copy[i], qty: copy[i].qty + qty };
         return copy;
       }
-      return [...prev, { ...item, qty }];
+      return [...prev, { productId: p.id, name: p.name, image: p.image, price: p.price, qty }];
     });
-    setOpen(true);
-  }
 
-  function removeItem(id) {
-    setItems((prev) => prev.filter((p) => p.id !== id));
-  }
+  // alias to support older code calling addItem(item)
+  const addItem = (item) =>
+    add(
+      {
+        id: item.id ?? item.productId,
+        name: item.name ?? item.title,
+        image: item.image ?? item.img,
+        price: item.priceCents ?? item.price,
+      },
+      item.qty ?? 1
+    );
 
-  function updateQty(id, qty) {
-    const safe = Math.max(1, Number(qty) || 1);
-    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, qty: safe } : p)));
-  }
+  const remove = (id) => setItems((prev) => prev.filter((x) => x.productId !== id));
+  const setQty = (id, qty) =>
+    setItems((prev) =>
+      prev.map((x) => (x.productId === id ? { ...x, qty: Math.max(1, qty) } : x))
+    );
+  const clear = () => setItems([]);
 
-  function clearCart() {
-    setItems([]);
-  }
-
-  // Derived totals
-  const { count, subtotalCents } = useMemo(() => {
-    let c = 0;
-    let s = 0;
-    for (const it of items) {
-      c += it.qty;
-      s += (it.priceCents || 0) * it.qty;
-    }
-    return { count: c, subtotalCents: s };
-  }, [items]);
-
-  const value = {
-    items,
-    addItem,
-    removeItem,
-    updateQty,
-    clearCart,
-    count,
-    subtotalCents,
-    open,
-    setOpen,
-  };
+  const value = useMemo(() => ({ items, add, addItem, remove, setQty, clear }), [items]);
 
   return <CartCtx.Provider value={value}>{children}</CartCtx.Provider>;
-}
-
-export function useCart() {
-  const ctx = useContext(CartCtx);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
-  return ctx;
 }
