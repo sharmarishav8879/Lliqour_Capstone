@@ -1,21 +1,23 @@
 "use client";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { use, useState } from "react";
+import { useState } from "react";
 import { auth, db } from "../_util/firebase";
-import { useUserAuth } from "../_util/auth-context";
 import { doc, getDoc } from "firebase/firestore";
+import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = () => {
     router.push("/auth/signUp");
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
       if (!email || !password) {
         alert("Please fill in all fields");
@@ -43,43 +45,67 @@ export default function Login() {
         alert("User not found");
       }
     } catch (error) {
-      alert(`Error logging in:  ${error.message}`);
+      alert(`Error logging in: ${error.message}`);
     }
   };
 
   return (
-    <main>
-      <div className="flex flex-col items-center justify-center font-serif min-h-screen bg-gray-100 gap-4">
-        <h1 className="text-4xl font-bold mt-4 text-black font-serif">
-          Login Page
+    <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center">
+      <div className="w-full max-w-md bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-6">
+        <h1 className="text-5xl font-bold text-black text-center mt-10">
+          Login
         </h1>
-        <p className="text-lg text-black">
+        <p className="text-lg text-black text-center">
           Please enter your credentials to log in.
         </p>
 
-        <input
-          onChange={(e) => setEmail(e.target.value)}
-          className="p-2 border border-gray-300 rounded text-black"
-          type="email"
-          placeholder="Email"
-        />
-
-        <input
-          onChange={(e) => setPassword(e.target.value)}
-          className="p-2 border border-gray-300 rounded text-black"
-          type="password"
-          placeholder="Password"
-        />
-        <button
-          onClick={handleLogin}
-          className="mt-2 bg-orange-600 text-white px-6 py-3 rounded hover:bg-orange-700 transition duration-300"
+        <form
+          onSubmit={handleLogin}
+          className="flex flex-col gap-6 w-full max-w-md"
         >
-          Log In
-        </button>
+          <input
+            onChange={(e) => setEmail(e.target.value)}
+            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            type="email"
+            placeholder="Email"
+            value={email}
+          />
+
+          <div className="relative">
+            <input
+              onChange={(e) => setPassword(e.target.value)}
+              className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5 w-full pr-12"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? (
+                <HiOutlineEyeOff size={24} />
+              ) : (
+                <HiOutlineEye size={24} />
+              )}
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-4xl transition duration-300"
+          >
+            Log In
+          </button>
+        </form>
 
         <div className="flex flex-row text-black items-center justify-center gap-2">
-          Don't have an account?
-          <p onClick={handleSignIn} className="text-orange-500 cursor-pointer">
+          Don&apos;t have an account?
+          <p
+            onClick={handleSignIn}
+            className="text-orange-500 cursor-pointer font-semibold"
+          >
             Click here to Sign Up
           </p>
         </div>
