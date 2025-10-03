@@ -14,12 +14,13 @@ export default function AddProduct() {
 
   const slug = name.toLowerCase().replace(/\s+/g, "-");
   const id = name.toLowerCase().replace(/\s+/g, "-");
+  const formattedAbv = abv.toString().includes("%") ? abv : `${abv}%`;
 
   const productData = {
     name: name,
     price: parseFloat(price),
     category: category,
-    abv: parseFloat(abv), // Convert to float for abv,
+    abv: formattedAbv,
     size: size,
     origin: origin,
     description: description,
@@ -28,9 +29,12 @@ export default function AddProduct() {
     id: id,
   };
 
-  const handleAddProduct = async () => {
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+
     try {
       await addProducts(productData);
+
       setName("");
       setPrice("");
       setCategory("");
@@ -46,8 +50,11 @@ export default function AddProduct() {
   };
 
   return (
-    <div>
-      <form onSubmit={handleAddProduct}>
+    <div className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black gap-6">
+      <form
+        onSubmit={handleAddProduct}
+        className="flex flex-col items-center gap-4"
+      >
         <input
           type="text"
           placeholder="Name"
