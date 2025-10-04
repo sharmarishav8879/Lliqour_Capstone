@@ -163,7 +163,7 @@ export default function Navbar() {
         </div>
       )}
 
-      <div className="flex items-center justify-between relative">
+      <div className="flex items-center justify-between  relative">
         <div className="flex items-center pl-50">
           <Image
             src="/Logo.jpg"
@@ -172,7 +172,7 @@ export default function Navbar() {
             width={50}
             height={50}
           />
-          <span className="ml-3 text-black text-2xl font-bold font-serif">
+          <span className=" text-black text-2xl font-bold font-serif">
             Legacy Liquor
           </span>
         </div>
@@ -186,7 +186,10 @@ export default function Navbar() {
                 </li>
 
                 <li>
-                  <Link href="/catalogue">Catalogue</Link>
+                  <Link href="admin/manageProducts">Products Modification</Link>
+                </li>
+                <li>
+                  <Link href="/admin/insights">Insights</Link>
                 </li>
                 <li>
                   <Link href="/admin/customer_support">Customer Support</Link>

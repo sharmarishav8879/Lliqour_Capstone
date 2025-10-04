@@ -20,13 +20,16 @@ export default function UpdateProducts() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await updateProductInDB(selectedProduct.id, selectedProduct);
+      await updateProductInDB(selectedProduct.docId, selectedProduct);
       alert("Product updated successfully!");
       setSelectedProduct(null);
 
       // Refresh products list
       const allProducts = await getAllProducts();
-      setProducts(allProducts);
+      const uniqueProducts = Array.from(
+        new Map(allProducts.map((p) => [p.docId, p])).values()
+      );
+      setProducts(uniqueProducts);
     } catch (error) {
       alert(`Error updating product: ${error.message}`);
       console.error("Error updating product:", error);
@@ -41,7 +44,7 @@ export default function UpdateProducts() {
       <div className="w-full max-w-4xl flex flex-col gap-4">
         {products.map((product) => (
           <div
-            key={product.id}
+            key={product.docId}
             className="p-4 border border-gray-300 rounded flex justify-between items-center"
           >
             <div>
