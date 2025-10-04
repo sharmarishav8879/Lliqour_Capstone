@@ -9,11 +9,9 @@ export default function Protected({ children, requiredRole }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || role !== requiredRole) {
-        alert("You do not have access to this page.");
-        router.push("/auth/login");
-      }
+    if (loading) return;
+    if (!user || role !== requiredRole) {
+      router.push("/auth/login");
     }
   }, [user, role, loading]);
 

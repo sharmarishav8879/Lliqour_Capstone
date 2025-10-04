@@ -16,7 +16,7 @@ import MiniCart from "./MiniCart";
 
 export default function Navbar() {
   // ---------------- state ----------------
-  const [role, setRole] = useState("guest");
+  const [role, setRole] = useState(null); // null = loading
   const [showSearch, setShowSearch] = useState(false);
   const [filter, setFilter] = useState("");
   const [category, setCategory] = useState("");
@@ -33,21 +33,29 @@ export default function Navbar() {
     if (pathname?.startsWith("/checkout")) setCartOpen(false);
   }, [pathname]);
 
-  // Fetch role from Firestore
+  // Fetch role from Firebase Auth + Firestore, with session cache
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setRole("guest");
         return;
       }
+
+      // Use cached role first to prevent flash of guest dashboard
+      const cached = sessionStorage.getItem("role");
+      if (cached) setRole(cached);
+
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
-        const fetched = snap.data()?.role?.trim().toLowerCase();
-        setRole(fetched || "guest");
-      } catch {
-        setRole("guest");
+        const fetchedRole = snap.data()?.role?.trim().toLowerCase() || "guest";
+        setRole(fetchedRole);
+        sessionStorage.setItem("role", fetchedRole); // update cache
+      } catch (err) {
+        console.error("Failed to fetch role:", err);
+        if (!cached) setRole("guest");
       }
     });
+
     return () => unsub();
   }, []);
 
@@ -97,6 +105,9 @@ export default function Navbar() {
   }, [role]);
 
   // ---------------- render ----------------
+  // Prevent flash of guest dashboard while role is loading
+  if (role === null) return null;
+
   return (
     <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
       {/* Search overlay */}

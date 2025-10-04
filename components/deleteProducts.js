@@ -7,7 +7,7 @@ import { DeleteProducts as deleteProductInDB } from "@/lib/modifyProducts";
 
 export default function DeleteProducts() {
   const [products, setProducts] = useState([]);
-  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState("");
   useEffect(() => {
     const fetchProducts = async () => {
       const allProducts = await getAllProducts();
@@ -17,6 +17,10 @@ export default function DeleteProducts() {
   }, []);
 
   const handleDelete = async () => {
+    if (!selectedProductId) {
+      alert("Please select a product to delete.");
+      return;
+    }
     try {
       await deleteProductInDB(selectedProductId);
       alert("Product deleted successfully!");

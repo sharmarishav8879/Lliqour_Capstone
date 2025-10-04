@@ -30,17 +30,26 @@ export const AuthContextProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setRole(userData.role);
+        try {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setRole(userData.role || "guest");
+          } else {
+            setRole("guest");
+          }
+        } catch (err) {
+          console.error("Error fetching user role:", err);
+          setRole("guest");
         }
       } else {
         setUser(null);
         setRole("guest");
       }
+
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 

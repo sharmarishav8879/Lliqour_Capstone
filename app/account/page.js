@@ -49,9 +49,7 @@ export default function Profile() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-
-      </div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white"></div>
     );
   }
 
@@ -61,8 +59,7 @@ export default function Profile() {
         {user && (
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-gray-300 rounded-full overflow-hidden">
-              </div>
+              <div className="w-20 h-20 bg-gray-300 rounded-full overflow-hidden"></div>
 
               <div className="flex flex-col">
                 <h1 className="text-3xl font-bold text-black">
