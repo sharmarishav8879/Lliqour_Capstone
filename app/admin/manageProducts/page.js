@@ -1,5 +1,5 @@
-import AddProduct from "@/components/addProducts";
-import UpdateProducts from "@/components/updateProducts";
+import AddProduct from "@/adminComponents/addProducts";
+import UpdateProducts from "@/adminComponents/updateProducts";
 
 export default function ManageProducts() {
   return (

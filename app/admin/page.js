@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getAllProducts } from "@/lib/products";
 import Protected from "@/components/protected";
+import ManageOffers from "@/adminComponents/manageOffers";
 
 function ProductCard({ product, className = "" }) {
   return (
@@ -35,6 +36,7 @@ function ProductCard({ product, className = "" }) {
 export default function Home() {
   const [items, setItems] = useState([]);
   const [activeCategory, setActiveCategory] = useState("Whisky");
+  const [offerProducts, setOfferProducts] = useState([]);
 
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
 
@@ -54,6 +56,13 @@ export default function Home() {
     };
 
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const storedOfferProducts = localStorage.getItem("offerProducts");
+    if (storedOfferProducts) {
+      setOfferProducts(JSON.parse(storedOfferProducts));
+    }
   }, []);
 
   return (
@@ -86,16 +95,32 @@ export default function Home() {
             <p className="mt-2 text-xl md:text-2xl text-yellow-100 font-semibold">
               Limited Time Only!
             </p>
+            <div className="bg-white text-black font-bold py-2 px-4 rounded-full mt-4 hover:bg-gray-300 cursor-pointer">
+              <ManageOffers />
+            </div>
           </div>
 
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-            {items
-              .filter((p) => p.discount && p.discount > 0)
-              .sort((a, b) => b.discount - a.discount)
-              .slice(0, 3)
-              .map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
+            {offerProducts.map((product) => (
+              <div
+                key={product.docId}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  width={500}
+                  height={500}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-black">
+                    {product.name}
+                  </h3>
+                  <p className="text-gray-600">${product.price.toFixed(2)}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
