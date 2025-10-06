@@ -31,9 +31,38 @@ function ProductCard({ product, className = "" }) {
   );
 }
 
+function OfferProductCard({ product }) {
+  return (
+    <Link
+      href={`/products/${product.slug}`}
+      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+    >
+      <Image
+        src={product.image}
+        alt={product.name}
+        width={500}
+        height={500}
+        className="w-full h-48 object-cover"
+      />
+      <div className="p-4 flex flex-col justify-between h-40">
+        <div className="font-bold text-lg text-black">{product.name}</div>
+        <div className="text-sm text-gray-600 mt-1">
+          {product.size ? `${product.size} • ` : ""}
+          {product.abv ? `${product.abv} • ` : ""}
+          {product.origin || ""}
+        </div>
+        <div className="mt-2 font-extrabold text-gray-900">
+          ${product.price.toFixed(2)}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function Home() {
   const [items, setItems] = useState([]);
   const [activeCategory, setActiveCategory] = useState("Whisky");
+  const [offerProducts, setOfferProducts] = useState([]);
 
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
 
@@ -53,6 +82,13 @@ export default function Home() {
     };
 
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const storedOfferProducts = localStorage.getItem("offerProducts");
+    if (storedOfferProducts) {
+      setOfferProducts(JSON.parse(storedOfferProducts));
+    }
   }, []);
 
   return (
@@ -85,15 +121,10 @@ export default function Home() {
             Limited Time Only!
           </p>
         </div>
-
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-          {items
-            .filter((p) => p.discount && p.discount > 0)
-            .sort((a, b) => b.discount - a.discount)
-            .slice(0, 3)
-            .map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+          {offerProducts.map((product) => (
+            <OfferProductCard key={product.id} product={product} />
+          ))}
         </div>
       </section>
 
