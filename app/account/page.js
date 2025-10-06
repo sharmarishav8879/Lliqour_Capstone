@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { useUserAuth } from "../auth/_util/auth-context";
 import { db } from "../auth/_util/firebase";
-import { HiOutlineCog } from "react-icons/hi";
+import { HiOutlineCog, HiOutlineSearch } from "react-icons/hi";
 import Link from "next/link";
 import { getAllProducts } from "@/lib/products";
 
@@ -15,8 +15,10 @@ export default function Profile() {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [items, setItems] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
 
   const handleSignOut = async () => {
@@ -52,8 +54,7 @@ export default function Profile() {
     const fetchProducts = async () => {
       try {
         const products = await getAllProducts();
-        if (Array.isArray(products)) setItems(products);
-        else setItems([]);
+        setItems(Array.isArray(products) ? products : []);
       } catch (error) {
         console.error("Error fetching products:", error);
         setItems([]);
@@ -65,6 +66,16 @@ export default function Profile() {
     fetchUserData();
     fetchProducts();
   }, [user, authLoading, router]);
+
+  const filteredItems = items.filter((product) => {
+    const matchesCategory = activeCategory
+      ? product.category === activeCategory
+      : true;
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   function InfoCard({ title, date, subtitleLabel = "Placed on" }) {
     return (
@@ -159,7 +170,6 @@ export default function Profile() {
                 subtitleLabel="Placed on"
               />
             </div>
-
             <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-2xl font-semibold text-black border-b pb-2">
                 Order History
@@ -175,7 +185,6 @@ export default function Profile() {
                 subtitleLabel="Delivered on"
               />
             </div>
-
             <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-2xl font-semibold text-black border-b pb-2">
                 Support Tickets
@@ -195,59 +204,101 @@ export default function Profile() {
         )}
 
         {role === "admin" && (
-          <div className="flex flex-col gap-4 mt-6 relative">
-            <h2 className="text-2xl font-semibold text-black border-b border-black pb-2">
-              Catalogue
-            </h2>
+          <div className="flex flex-col gap-4 mt-6">
+            <div className="flex items-center justify-between w-full border-b border-black pb-2">
+              <h2 className="text-2xl font-semibold text-black flex-1">
+                Quick Catalogue
+              </h2>
 
-            <div className="absolute -right-6 w-40">
-              <button
-                onClick={() => setShowDropdown((prev) => !prev)}
-                className="px-4 py-1 bg-gray-200 text-black rounded-full font-semibold flex justify-center items-center shadow w-25"
-              >
-                {activeCategory || "All"}
-              </button>
-
-              {showDropdown && (
-                <div className="absolute mt-2 w-full bg-white text-black font-semibold rounded-lg shadow-lg z-20">
+              <div className="flex items-end gap-4 ml-4">
+                <div className="relative w-25">
                   <button
                     onClick={() => {
-                      setActiveCategory(null);
-                      setShowDropdown(false);
+                      setShowCategoryDropdown((prev) => !prev);
+                      setShowSearch(false);
                     }}
-                    className="w-full text-left px-4 py-2 hover:bg-orange-500 rounded-lg"
+                    className="w-full h-10 px-4 bg-gray-200 text-black rounded-full font-semibold flex justify-center items-center shadow"
                   >
-                    All
+                    {activeCategory || "All"}
                   </button>
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => {
-                        setActiveCategory(category);
-                        setShowDropdown(false);
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-orange-500 rounded-lg"
-                    >
-                      {category}
-                    </button>
-                  ))}
+                  {showCategoryDropdown && (
+                    <div className="absolute mt-2 right-0 w-full bg-white text-black font-semibold rounded-lg shadow-lg z-20">
+                      <button
+                        onClick={() => {
+                          setActiveCategory(null);
+                          setShowCategoryDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-orange-500 rounded-lg"
+                      >
+                        All
+                      </button>
+                      {categories.map((category) => (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            setActiveCategory(category);
+                            setShowCategoryDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-orange-500 rounded-lg"
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <div className="relative w-8">
+                  <button
+                    onClick={() => {
+                      setShowSearch((prev) => !prev);
+                      setShowCategoryDropdown(false);
+                    }}
+                    className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
+                  >
+                    <HiOutlineSearch size={20} className="text-black" />
+                  </button>
+
+                  {showSearch && (
+                    <div className="absolute top-full mt-2 right-0 flex items-center gap-2 border border-gray-300 text-black rounded-4xl p-2 w-[150px] bg-white shadow-lg font-serif z-20">
+                      <HiOutlineSearch className="text-xl" />
+                      <input
+                        type="text"
+                        placeholder="Search"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="border-none outline-none text-black w-full text-lg rounded-md"
+                      />
+                      <div
+                        onClick={() => {
+                          setSearchTerm("");
+                          setShowSearch(false);
+                        }}
+                        className="text-black cursor-pointer text-md pr-2"
+                      >
+                        ✕
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="w-full max-w-6xl flex flex-col gap-6 mt-6">
+            <div className="w-full max-w-6xl flex flex-col gap-6 mt-4">
               <div className="flex gap-6 overflow-x-auto py-2 scrollbar-hide">
-                {items
-                  .filter((product) =>
-                    activeCategory ? product.category === activeCategory : true
-                  )
-                  .map((product) => (
+                {filteredItems.length > 0 ? (
+                  filteredItems.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
                       className="min-w-[220px]"
                     />
-                  ))}
+                  ))
+                ) : (
+                  <p className="text-center text-orange-500 text-lg w-full">
+                    No products found.
+                  </p>
+                )}
               </div>
             </div>
           </div>
