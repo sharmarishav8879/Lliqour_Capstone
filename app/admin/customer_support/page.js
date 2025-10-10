@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/app/auth/_util/firebase";
 import Protected from "@/components/protected";
+import ViewReplies from "@/adminComponents/viewReplies";
 
 export default function CustomerSupport() {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [reply, setReply] = useState("");
+  const [showReplies, setShowReplies] = useState(false);
 
   useEffect(() => {
     const fetchComplaints = async () => {
@@ -55,6 +57,7 @@ export default function CustomerSupport() {
     try {
       const addedReply = await addDoc(collection(db, "replies"), {
         ticketId: selectedTicket.id,
+        userEmail: selectedTicket.email,
         reply,
         createdAt: new Date(),
       });
@@ -73,6 +76,26 @@ export default function CustomerSupport() {
         <h1 className="text-4xl font-bold mb-6 text-black text-center">
           Customer Complaints
         </h1>
+        <div className="absolute top-4 right-4 text-white  mt-25  cursor-pointer">
+          {showReplies ? (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center z-50 font-serif">
+              <ViewReplies />
+              <button
+                onClick={() => setShowReplies(false)}
+                className="bg-white text-black hover:bg-gray-200 p-2 rounded cursor-pointer mt-2"
+              >
+                Close Replies
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowReplies(true)}
+              className="bg-black p-2 rounded cursor-pointer"
+            >
+              View Replies
+            </button>
+          )}
+        </div>
 
         <div className="flex flex-wrap gap-6 justify-center">
           {complaints.length === 0 ? (
