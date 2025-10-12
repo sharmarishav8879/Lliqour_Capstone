@@ -105,7 +105,7 @@ export default function CustomerSupport() {
               <div
                 onClick={() => handleTicketClicked(complaint)}
                 key={complaint.id}
-                className="bg-black border-2 border-orange-400 rounded-2xl shadow-lg p-4 min-w-[220px] max-w-[300px] hover:shadow-xl hover:scale-105 transition-transform duration-300"
+                className="bg-black border-2 border-orange-400 rounded-2xl shadow-lg p-4 min-w-[220px] max-w-[300px] hover:shadow-xl hover:scale-105 transition-transform cursor-pointer duration-300"
               >
                 <p className="text-lg font-semibold text-orange-400">
                   {complaint.name}
@@ -143,7 +143,7 @@ export default function CustomerSupport() {
                 </button>
                 <button
                   onClick={handleCloseTicket}
-                  className="bg-black text-orange-500 absolute top-2 right-2  px-4 py-2 rounded mt-4"
+                  className="bg-black cursor-pointer text-orange-500 absolute top-2 right-2  px-4 py-2 rounded mt-4"
                 >
                   Close
                 </button>
