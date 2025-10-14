@@ -8,6 +8,8 @@ import { HiOutlineCog, HiOutlineSearch } from "react-icons/hi";
 import { FiPlus } from "react-icons/fi";
 import Link from "next/link";
 import { getAllProducts } from "@/lib/products";
+import { addProducts } from "@/lib/modifyProducts";
+import AddProduct from "../../adminComponents/addProducts";
 
 export default function Profile() {
   const { user, loading: authLoading, firebaseSignOut } = useUserAuth();
@@ -21,6 +23,19 @@ export default function Profile() {
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
+  const [showProductForm, setShowProductForm] = useState(false);
+
+  const [productData, setProductData] = useState({
+    name: "",
+    price: "",
+    category: "",
+    abv: "",
+    size: "",
+    origin: "",
+    description: "",
+    discount: "",
+    imageUrl: "",
+  });
 
   const handleSignOut = async () => {
     try {
@@ -96,7 +111,7 @@ export default function Profile() {
         className={`bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 ${className}`}
       >
         <img
-          src={product.image}
+          src={product.imageUrl || product.image}
           alt={product.name}
           className="w-full h-56 object-cover"
         />
@@ -122,6 +137,57 @@ export default function Profile() {
       </div>
     );
   }
+
+  const handleAddProductSubmit = async (e) => {
+    e.preventDefault();
+
+    const { name, price, category, abv, size, origin } = productData;
+
+    if (!name.trim()) return alert("Product name is required.");
+    if (!category.trim()) return alert("Category is required.");
+    if (!size.trim()) return alert("Size is required.");
+    if (!origin.trim()) return alert("Origin is required.");
+
+    const priceNum = parseFloat(price);
+    const abvNum = parseFloat(abv);
+
+    if (isNaN(priceNum) || priceNum <= 0)
+      return alert("Price must be a positive number.");
+    if (isNaN(abvNum) || abvNum < 0)
+      return alert("ABV must be a valid number.");
+
+    const slug = name.toLowerCase().replace(/\s+/g, "-");
+    const id = slug;
+
+    const newProduct = {
+      ...productData,
+      price: priceNum,
+      discount: parseFloat(productData.discount) || 0,
+      slug,
+      id,
+      imageUrl: productData.imageUrl || "/placeholderProduct.jpg",
+    };
+
+    try {
+      await addProducts(newProduct);
+      setProductData({
+        name: "",
+        price: "",
+        category: "",
+        abv: "",
+        size: "",
+        origin: "",
+        description: "",
+        discount: "",
+        imageUrl: "",
+      });
+      setShowProductForm(false);
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add product. Please try again.");
+    }
+  };
 
   return (
     <main className="bg-white min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif">
@@ -171,6 +237,7 @@ export default function Profile() {
                 subtitleLabel="Placed on"
               />
             </div>
+
             <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-2xl font-semibold text-black border-b pb-2">
                 Order History
@@ -186,6 +253,7 @@ export default function Profile() {
                 subtitleLabel="Delivered on"
               />
             </div>
+
             <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-2xl font-semibold text-black border-b pb-2">
                 Support Tickets
@@ -212,20 +280,50 @@ export default function Profile() {
               </h2>
 
               <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => {}}
-                  className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
-                >
-                  <FiPlus size={20} className="text-black" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowProductForm((prev) => !prev);
+                      setShowSearch(false);
+                      setShowCategoryDropdown(false);
+                    }}
+                    className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
+                  >
+                    <FiPlus size={20} className="text-black" />
+                  </button>
+
+                  {showProductForm && (
+                    <div className="absolute right-0 w-72 bg-white text-black font-serif rounded-2xl shadow-xl z-20 p-4 max-h-[80vh] overflow-y-auto flex flex-col gap-3">
+                      <h2 className="text-lg font-bold text-center mb-3">
+                        Add Product
+                      </h2>
+                      <form
+                        className="flex flex-col gap-2 w-full"
+                        onSubmit={handleAddProductSubmit}
+                      >
+                        <AddProduct
+                          productData={productData}
+                          setProductData={setProductData}
+                        />
+                        <button
+                          type="submit"
+                          className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg transition-colors"
+                        >
+                          Add Product
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
 
                 <div className="relative">
                   <button
                     onClick={() => {
                       setShowCategoryDropdown((prev) => !prev);
                       setShowSearch(false);
+                      setShowProductForm(false);
                     }}
-                    className="h-10 px-4 bg-gray-200 text-black rounded-full font-semibold flex justify-center items-center shadow"
+                    className="h-10 w-22 px-4 bg-gray-200 text-black rounded-full font-semibold flex justify-center items-center shadow"
                   >
                     {activeCategory || "All"}
                   </button>
@@ -236,7 +334,7 @@ export default function Profile() {
                           setActiveCategory(null);
                           setShowCategoryDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 hover:bg-orange-500 rounded-lg"
+                        className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
                       >
                         All
                       </button>
@@ -247,7 +345,7 @@ export default function Profile() {
                             setActiveCategory(category);
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-orange-500 rounded-lg"
+                          className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
                         >
                           {category}
                         </button>
@@ -261,12 +359,12 @@ export default function Profile() {
                     onClick={() => {
                       setShowSearch((prev) => !prev);
                       setShowCategoryDropdown(false);
+                      setShowProductForm(false);
                     }}
                     className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
                   >
                     <HiOutlineSearch size={20} className="text-black" />
                   </button>
-
                   {showSearch && (
                     <div className="absolute top-full mt-2 right-0 flex items-center gap-2 border border-gray-300 text-black rounded-4xl p-2 w-[150px] bg-white shadow-lg font-serif z-20">
                       <HiOutlineSearch className="text-xl" />
