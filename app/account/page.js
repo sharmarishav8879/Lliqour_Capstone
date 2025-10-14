@@ -6,6 +6,8 @@ import { useUserAuth } from "../auth/_util/auth-context";
 import { db } from "../auth/_util/firebase";
 import { HiOutlineCog, HiOutlineSearch } from "react-icons/hi";
 import { FiPlus } from "react-icons/fi";
+import { FaRegTrashAlt } from "react-icons/fa";
+import { MdModeEditOutline } from "react-icons/md";
 import Link from "next/link";
 import { getAllProducts } from "@/lib/products";
 import { addProducts } from "@/lib/modifyProducts";
@@ -105,10 +107,11 @@ export default function Profile() {
   }
 
   function ProductCard({ product, className = "" }) {
-    return (
+  return (
+    <div className={`relative ${className}`}>
       <Link
         href={`/products/${product.slug}`}
-        className={`bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 ${className}`}
+        className="block bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
       >
         <img
           src={product.imageUrl || product.image}
@@ -127,16 +130,25 @@ export default function Profile() {
           </div>
         </div>
       </Link>
-    );
-  }
 
-  if (authLoading || loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-        <p className="text-gray-600">Loading...</p>
+      <div className="absolute bottom-4 right-4 flex space-x-2">
+        <button
+          onClick={() => {}}
+          className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-gray-200 text-gray-800"
+        >
+          <MdModeEditOutline size={20} />
+        </button>
+
+        <button
+          onClick={() => {}}
+          className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-orange-500 text-white"
+        >
+          <FaRegTrashAlt size={18} />
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   const handleAddProductSubmit = async (e) => {
     e.preventDefault();
