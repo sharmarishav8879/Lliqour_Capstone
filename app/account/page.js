@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { useUserAuth } from "../auth/_util/auth-context";
 import { db } from "../auth/_util/firebase";
 import { HiOutlineCog, HiOutlineSearch } from "react-icons/hi";
+import { FiPlus } from "react-icons/fi";
 import Link from "next/link";
 import { getAllProducts } from "@/lib/products";
 
@@ -210,14 +211,21 @@ export default function Profile() {
                 Quick Catalogue
               </h2>
 
-              <div className="flex items-end gap-4 ml-4">
-                <div className="relative w-25">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {}}
+                  className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
+                >
+                  <FiPlus size={20} className="text-black" />
+                </button>
+
+                <div className="relative">
                   <button
                     onClick={() => {
                       setShowCategoryDropdown((prev) => !prev);
                       setShowSearch(false);
                     }}
-                    className="w-full h-10 px-4 bg-gray-200 text-black rounded-full font-semibold flex justify-center items-center shadow"
+                    className="h-10 px-4 bg-gray-200 text-black rounded-full font-semibold flex justify-center items-center shadow"
                   >
                     {activeCategory || "All"}
                   </button>
@@ -248,7 +256,7 @@ export default function Profile() {
                   )}
                 </div>
 
-                <div className="relative w-8">
+                <div className="relative">
                   <button
                     onClick={() => {
                       setShowSearch((prev) => !prev);
