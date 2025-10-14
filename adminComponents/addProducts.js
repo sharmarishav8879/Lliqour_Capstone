@@ -1,110 +1,130 @@
 "use client";
-import { useState } from "react";
-import { addProducts } from "@/lib/modifyProducts";
+import React from "react";
 
-export default function AddProduct() {
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
-  const [abv, setAbv] = useState("");
-  const [size, setSize] = useState("");
-  const [origin, setOrigin] = useState("");
-  const [description, setDescription] = useState("");
-  const [discount, setDiscount] = useState("");
+const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
+const countries = [
+  "United States", "Canada", "United Kingdom", "France", "Germany",
+  "Italy", "Spain", "Ireland", "Australia", "Mexico", "Brazil", "Japan",
+  "China", "India", "Russia", "South Africa", "Belgium", "Netherlands",
+  "Sweden", "Norway", "Denmark", "Finland", "Poland", "Argentina"
+];
 
-  const slug = name.toLowerCase().replace(/\s+/g, "-");
-  const id = name.toLowerCase().replace(/\s+/g, "-");
-  const formattedAbv = abv.toString().includes("%") ? abv : `${abv}%`;
-
-  const productData = {
-    name: name,
-    price: parseFloat(price),
-    category: category,
-    abv: formattedAbv,
-    size: size,
-    origin: origin,
-    description: description,
-    discount: parseFloat(discount), // Convert to float for discount
-    slug: slug,
-    id: id,
-  };
-
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-
-    try {
-      await addProducts(productData);
-
-      setName("");
-      setPrice("");
-      setCategory("");
-      setAbv("");
-      setSize("");
-      setOrigin("");
-      setDescription("");
-      setDiscount("");
-      alert("Product added successfully!");
-    } catch (error) {
-      console.error("Error adding product:", error);
-    }
-  };
+export default function AddProduct({ productData, setProductData }) {
+  const {
+    name = "",
+    price = "",
+    category = "",
+    abv = "",
+    size = "",
+    origin = "",
+    description = "",
+    discount = 0,
+    imageUrl = "/placeholderProduct.jpg",
+  } = productData || {};
 
   return (
-    <div className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black gap-6">
-      <form
-        onSubmit={handleAddProduct}
-        className="flex flex-col items-center gap-4"
+    <>
+      <input
+        type="text"
+        placeholder="Name (e.g. Glenfiddich 12 Year)"
+        value={name}
+        onChange={(e) =>
+          setProductData({ ...productData, name: e.target.value })
+        }
+        className="border p-2 rounded-md"
+      />
+
+      <input
+        type="number"
+        placeholder="Price (e.g. 59.99)"
+        value={price}
+        onChange={(e) =>
+          setProductData({ ...productData, price: e.target.value })
+        }
+        className="border p-2 rounded-md"
+      />
+
+      <select
+        value={category}
+        onChange={(e) =>
+          setProductData({ ...productData, category: e.target.value })
+        }
+        className="border p-2 rounded-md"
       >
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="ABV"
-          value={abv}
-          onChange={(e) => setAbv(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Size"
-          value={size}
-          onChange={(e) => setSize(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Origin"
-          value={origin}
-          onChange={(e) => setOrigin(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Discount"
-          value={discount}
-          onChange={(e) => setDiscount(e.target.value)}
-        />
-        <button type="submit">Add Product</button>
-      </form>
-    </div>
+        <option value="">Select Category (e.g. Whisky)</option>
+        {categories.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
+      </select>
+
+      <input
+        type="text"
+        placeholder="ABV (e.g. 40%)"
+        value={abv}
+        onChange={(e) =>
+          setProductData({ ...productData, abv: e.target.value })
+        }
+        className="border p-2 rounded-md"
+      />
+
+      <input
+        type="text"
+        placeholder="Size (e.g. 750ml)"
+        value={size}
+        onChange={(e) =>
+          setProductData({ ...productData, size: e.target.value })
+        }
+        className="border p-2 rounded-md"
+      />
+
+      <select
+        value={origin}
+        onChange={(e) =>
+          setProductData({ ...productData, origin: e.target.value })
+        }
+        className="border p-2 rounded-md"
+      >
+        <option value="">Select Country (e.g. Scotland)</option>
+        {countries.map((country) => (
+          <option key={country} value={country}>
+            {country}
+          </option>
+        ))}
+      </select>
+
+      <textarea
+        placeholder="Description (e.g. A smooth, rich single malt whisky)"
+        value={description}
+        onChange={(e) =>
+          setProductData({ ...productData, description: e.target.value })
+        }
+        className="border p-2 rounded-md"
+      />
+
+      <input
+        type="text"
+        placeholder="Discount (e.g. 10%, optional, default 0)"
+        value={discount}
+        onChange={(e) =>
+          setProductData({ ...productData, discount: e.target.value || 0 })
+        }
+        className="border p-2 rounded-md"
+      />
+
+      <input
+        type="text"
+        placeholder="Image URL (optional, default /placeholderProduct.jpg)"
+        value={imageUrl}
+        onChange={(e) =>
+          setProductData({
+            ...productData,
+            imageUrl: e.target.value || "/placeholderProduct.jpg",
+          })
+        }
+        className="border p-2 rounded-md"
+      />
+    </>
   );
 }

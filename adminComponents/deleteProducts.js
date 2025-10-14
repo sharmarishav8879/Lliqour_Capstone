@@ -1,58 +1,29 @@
 "use client";
 
-import { getAllProducts } from "@/lib/products";
+import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { db } from "@/app/auth/_util/firebase";
 
-import { useEffect, useState } from "react";
-import { DeleteProducts as deleteProductInDB } from "@/lib/modifyProducts";
+/**
+ * Deletes a product by its custom `id` field.
+ * @param {string} customId
+ */
+export async function deleteProduct(customId) {
+  if (!customId) throw new Error("Product ID is required");
 
-export default function DeleteProducts() {
-  const [products, setProducts] = useState([]);
-  const [selectedProductId, setSelectedProductId] = useState("");
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const allProducts = await getAllProducts();
-      setProducts(allProducts);
-    };
-    fetchProducts();
-  }, []);
+  try {
+    const q = query(collection(db, "products"), where("id", "==", customId));
+    const snapshot = await getDocs(q);
 
-  const handleDelete = async () => {
-    if (!selectedProductId) {
-      alert("Please select a product to delete.");
-      return;
+    if (snapshot.empty) {
+      throw new Error(`No product found with id "${customId}"`);
     }
-    try {
-      await deleteProductInDB(selectedProductId);
-      alert("Product deleted successfully!");
-      setSelectedProductId(null);
 
-      const allProducts = await getAllProducts();
-      setProducts(allProducts);
-    } catch (error) {
-      alert(`Error deleting product: ${error.message}`);
+    for (const docSnap of snapshot.docs) {
+      await deleteDoc(doc(db, "products", docSnap.id));
+      console.log(`Deleted product Firestore doc ID: ${docSnap.id}`);
     }
-  };
-  return (
-    <div className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black">
-      <h2>Delete Product</h2>
-      <select
-        value={selectedProductId}
-        className="border border-gray-300 rounded p-2 w-1/2 mt-4"
-        onChange={(e) => setSelectedProductId(e.target.value)}
-      >
-        <option value="">Select a product</option>
-        {products.map((product) => (
-          <option key={product.id} value={product.id}>
-            {product.name}
-          </option>
-        ))}
-      </select>
-      <button
-        className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        onClick={handleDelete}
-      >
-        Delete
-      </button>
-    </div>
-  );
+  } catch (error) {
+    console.error(`Error deleting product: ${error.message}`);
+    throw error;
+  }
 }
