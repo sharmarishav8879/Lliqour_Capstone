@@ -186,9 +186,6 @@ export default function Navbar() {
                 </li>
 
                 <li>
-                  <Link href="admin/manageProducts">Products Modification</Link>
-                </li>
-                <li>
                   <Link href="/admin/insights">Insights</Link>
                 </li>
                 <li>

@@ -6,6 +6,7 @@ export default function ManageOffers() {
   const [manageOffers, setManageOffers] = useState(false);
   const [products, setProducts] = useState([]);
   const [offerProducts, setOfferProducts] = useState([]);
+  const [alertMessage, setAlertMessage] = useState("");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -25,7 +26,8 @@ export default function ManageOffers() {
   }, [manageOffers]);
 
   const handleAddOffers = (p) => {
-    if (offerProducts.find((product) => p.docId === product.docId)) return;
+    if (offerProducts.find((product) => p.docId === product.docId))
+      return alert("Product already added!");
 
     if (offerProducts.length >= 3) {
       alert("You can only add up to 3 offers at a time.");
@@ -38,6 +40,8 @@ export default function ManageOffers() {
     // localStorage.removeItem("offerProducts");
 
     localStorage.setItem("offerProducts", JSON.stringify(updatedOffersList));
+
+    setAlertMessage(`${p.name} added to offers!`);
   };
   return (
     <div>
@@ -49,8 +53,13 @@ export default function ManageOffers() {
       </div>
 
       {manageOffers && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-[90%] md:w-[600px] max-h-[85vh] flex flex-col relative">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 font-serif">
+          {alertMessage && (
+            <div className="absolute top-3 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-2 rounded-md ">
+              {alertMessage}
+            </div>
+          )}
+          <div className="bg-white rounded-2xl shadow-2xl w-[90%] md:w-[600px] max-h-[85vh] flex flex-col relative mt-5">
             <div
               onClick={() => setManageOffers(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-black transition"
