@@ -12,6 +12,7 @@ import Link from "next/link";
 import { getAllProducts } from "@/lib/products";
 import { addProducts } from "@/lib/modifyProducts";
 import AddProduct from "../../adminComponents/addProducts";
+import { deleteProduct } from "../../adminComponents/deleteProducts";
 
 export default function Profile() {
   const { user, loading: authLoading, firebaseSignOut } = useUserAuth();
@@ -106,49 +107,67 @@ export default function Profile() {
     );
   }
 
-  function ProductCard({ product, className = "" }) {
-  return (
-    <div className={`relative ${className}`}>
-      <Link
-        href={`/products/${product.slug}`}
-        className="block bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
-      >
-        <img
-          src={product.imageUrl || product.image}
-          alt={product.name}
-          className="w-full h-56 object-cover"
-        />
-        <div className="p-4 flex flex-col justify-between h-40">
-          <div className="font-bold text-lg text-black">{product.name}</div>
-          <div className="text-sm text-gray-600 mt-1">
-            {product.size ? `${product.size} • ` : ""}
-            {product.abv ? `${product.abv} • ` : ""}
-            {product.origin || ""}
+  function ProductCard({ product, className = "", onProductDeleted }) {
+    const handleDeleteClick = async (e) => {
+      e.preventDefault();
+      const confirmed = confirm(
+        `Are you sure you want to delete "${product.name}"?`
+      );
+      if (!confirmed) return;
+
+      try {
+        await deleteProduct(product.id);
+
+        if (onProductDeleted) onProductDeleted(product.id);
+
+        alert(`"${product.name}" deleted successfully!`);
+      } catch (err) {
+        alert(`Failed to delete product: ${err.message}`);
+      }
+    };
+
+    return (
+      <div className={`relative ${className}`}>
+        <Link
+          href={`/products/${product.slug}`}
+          className="block bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
+        >
+          <img
+            src={product.imageUrl || product.image}
+            alt={product.name}
+            className="w-full h-56 object-cover"
+          />
+          <div className="p-4 flex flex-col justify-between h-40">
+            <div className="font-bold text-lg text-black">{product.name}</div>
+            <div className="text-sm text-gray-600 mt-1">
+              {product.size ? `${product.size} • ` : ""}
+              {product.abv ? `${product.abv} • ` : ""}
+              {product.origin || ""}
+            </div>
+            <div className="mt-2 font-extrabold text-gray-900">
+              ${product.price.toFixed(2)}
+            </div>
           </div>
-          <div className="mt-2 font-extrabold text-gray-900">
-            ${product.price.toFixed(2)}
-          </div>
+        </Link>
+
+        <div className="absolute bottom-4 right-4 flex space-x-2">
+          <button
+            onClick={(e) => e.preventDefault()}
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-gray-200 text-gray-800"
+          >
+            <MdModeEditOutline size={20} />
+          </button>
+
+          <button
+            onClick={handleDeleteClick}
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-orange-500 text-white"
+          >
+            <FaRegTrashAlt size={18} />
+          </button>
         </div>
-      </Link>
-
-      <div className="absolute bottom-4 right-4 flex space-x-2">
-        <button
-          onClick={() => {}}
-          className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-gray-200 text-gray-800"
-        >
-          <MdModeEditOutline size={20} />
-        </button>
-
-        <button
-          onClick={() => {}}
-          className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-orange-500 text-white"
-        >
-          <FaRegTrashAlt size={18} />
-        </button>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   const handleAddProductSubmit = async (e) => {
     e.preventDefault();
@@ -198,6 +217,14 @@ export default function Profile() {
     } catch (err) {
       console.error(err);
       alert("Failed to add product. Please try again.");
+    }
+  };
+
+  const handleDeleteClick = async () => {
+    try {
+      await deleteProduct(product.id);
+    } catch (err) {
+      alert(`Failed to delete product: ${err.message}`);
     }
   };
 
@@ -401,7 +428,6 @@ export default function Profile() {
                 </div>
               </div>
             </div>
-
             <div className="w-full max-w-6xl flex flex-col gap-6 mt-4">
               <div className="flex gap-6 overflow-x-auto py-2 scrollbar-hide">
                 {filteredItems.length > 0 ? (
@@ -410,6 +436,11 @@ export default function Profile() {
                       key={product.id}
                       product={product}
                       className="min-w-[220px]"
+                      onProductDeleted={(deletedId) => {
+                        setItems((prev) =>
+                          prev.filter((p) => p.id !== deletedId)
+                        );
+                      }}
                     />
                   ))
                 ) : (
