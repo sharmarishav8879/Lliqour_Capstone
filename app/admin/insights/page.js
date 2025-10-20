@@ -289,10 +289,10 @@ export default function AdminInsights() {
 
   if (!roleChecked) return null;
 
-  // light-orange theme tokens
-  const cardBg = "bg-[#FFF4E6]";
-  const cardHdr = "bg-[#FFE3C2]";
-  const zebra = ["", "bg-white"];
+// dark-orange theme tokens
+const cardBg = "bg-[#FFE3C2]";   // card body (light orange)
+const cardHdr = "bg-[#FFB25B]";  // header strip (darker orange)
+const zebra = ["", "bg-white"];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 text-neutral-900">
@@ -335,11 +335,11 @@ export default function AdminInsights() {
             Export Orders CSV
           </button>
           <button
-            onClick={downloadTopProductsCSV}
-            className="px-3 py-2 bg-[#FFEBD3] border-2 border-black rounded text-sm font-semibold shadow-[0_2px_0_#000] active:translate-y-[1px]"
-          >
-            Export Top Products CSV
-          </button>
+  onClick={downloadTopProductsCSV}
+  className="px-3 py-2 bg-[#FFB25B] border-2 border-black rounded text-sm font-semibold shadow-[0_2px_0_#000] hover:-translate-y-[1px] transition-all active:translate-y-[1px]"
+>
+  Export Top Products CSV
+</button>
         </div>
       </div>
 
