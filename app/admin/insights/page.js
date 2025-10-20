@@ -16,6 +16,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/app/auth/_util/firebase";
 
+// --- currency + human dates
 function money(cents = 0) {
   const v = Number(cents || 0) / 100;
   try {
@@ -158,7 +159,6 @@ export default function AdminInsights() {
 
   // --- CSV exports
   function downloadCSV() {
-    // simple revenue export (orders within period)
     const rows = [
       ["Order ID", "Date", "Method", "Items", "Subtotal", "Tax", "Total"],
       ...orders.map((o) => [
@@ -182,32 +182,37 @@ export default function AdminInsights() {
     URL.revokeObjectURL(a.href);
   }
 
-  function downloadTopProductsCSV() {
-    const rows = [
-      ["Product", "Quantity", "Revenue"],
-      ...topProducts.map((p) => [p.name, p.qty, money(p.revenue)]),
-    ];
-    const csv = rows
-      .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `insights-top-products-${period}d.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
+function downloadTopProductsCSV() {
+  const rows = [
+    ["Product", "Quantity", "Revenue"],
+    ...topProducts.map((p) => [p.name, p.qty, money(p.revenue)]),
+  ];
+  const csv = rows
+    .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `insights-top-products-${period}d.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
   if (!roleChecked) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 text-white">
-      <h1 className="text-3xl font-semibold mb-6">Admin Insights</h1>
+    <div className="max-w-7xl mx-auto px-4 py-10 text-neutral-100">
+      <div className="mb-2">
+        <h1 className="text-3xl font-extrabold tracking-tight">Admin Insights</h1>
+        <p className="text-sm text-neutral-400">Quick view of orders, trends and health.</p>
+      </div>
 
-      <div className="flex items-center gap-3 mb-6">
-        <span className="opacity-80">Show last</span>
+      {/* toolbar */}
+      <div className="flex flex-wrap items-center gap-3 mb-6 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-3">
+        <label htmlFor="period" className="opacity-80 text-sm">Show last</label>
         <select
-          className="bg-black border border-gray-700 rounded px-3 py-2"
+          id="period"
+          className="bg-black border border-neutral-700 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-600"
           value={period}
           onChange={(e) => setPeriod(Number(e.target.value))}
         >
@@ -219,30 +224,32 @@ export default function AdminInsights() {
           <option value={365}>365 days</option>
         </select>
 
-        <button
-          onClick={downloadCSV}
-          className="ml-auto px-3 py-2 bg-white text-black rounded"
-        >
-          Export Orders CSV
-        </button>
-
-        <button
-          onClick={downloadTopProductsCSV}
-          className="px-3 py-2 border border-gray-700 rounded"
-        >
-          Export Top Products CSV
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={downloadCSV}
+            className="px-3 py-2 bg-white text-black rounded text-sm font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/40"
+          >
+            Export Orders CSV
+          </button>
+          <button
+            onClick={downloadTopProductsCSV}
+            className="px-3 py-2 border border-neutral-700 rounded text-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-600"
+          >
+            Export Top Products CSV
+          </button>
+        </div>
       </div>
 
       {loading ? (
+        // skeleton for KPIs
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="rounded-xl border border-gray-800 p-4 bg-[#121212] animate-pulse"
+              className="rounded-2xl border border-neutral-800 p-4 bg-[#111] shadow-sm animate-pulse"
             >
-              <div className="h-4 w-24 bg-gray-700 rounded mb-3" />
-              <div className="h-6 w-32 bg-gray-700 rounded" />
+              <div className="h-4 w-24 bg-neutral-700 rounded mb-3" />
+              <div className="h-6 w-32 bg-neutral-700 rounded" />
             </div>
           ))}
         </div>
@@ -262,51 +269,65 @@ export default function AdminInsights() {
               {topProducts.length === 0 ? (
                 <Empty />
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="opacity-70">
-                    <tr>
-                      <th className="text-left py-2">Product</th>
-                      <th className="text-right py-2">Qty</th>
-                      <th className="text-right py-2">Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topProducts.map((p) => (
-                      <tr key={p.name} className="border-t border-gray-800">
-                        <td className="py-2">{p.name}</td>
-                        <td className="py-2 text-right">{p.qty}</td>
-                        <td className="py-2 text-right">{money(p.revenue)}</td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
+                      <tr>
+                        <th scope="col" className="text-left py-2 px-2">Product</th>
+                        <th scope="col" className="text-right py-2 px-2">Qty</th>
+                        <th scope="col" className="text-right py-2 px-2">Revenue</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="tabular-nums">
+                      {topProducts.map((p, idx) => (
+                        <tr
+                          key={p.name}
+                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${
+                            idx % 2 ? "bg-black/10" : ""
+                          }`}
+                        >
+                          <td className="py-2 px-2">{p.name}</td>
+                          <td className="py-2 px-2 text-right">{p.qty}</td>
+                          <td className="py-2 px-2 text-right font-mono">{money(p.revenue)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </Card>
 
             {/* Low stock */}
             <Card title="Low Stock (≤ 10)">
               {lowStock.length === 0 ? (
-                <div className="text-sm opacity-70">
+                <div className="text-sm text-neutral-400">
                   Either everything’s fine or your products don’t have a
                   <code className="mx-1">stock</code> field.
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="opacity-70">
-                    <tr>
-                      <th className="text-left py-2">Product</th>
-                      <th className="text-right py-2">Stock</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lowStock.map((p) => (
-                      <tr key={p.id} className="border-t border-gray-800">
-                        <td className="py-2">{p.name}</td>
-                        <td className="py-2 text-right">{p.stock}</td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
+                      <tr>
+                        <th scope="col" className="text-left py-2 px-2">Product</th>
+                        <th scope="col" className="text-right py-2 px-2">Stock</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="tabular-nums">
+                      {lowStock.map((p, idx) => (
+                        <tr
+                          key={p.id}
+                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${
+                            idx % 2 ? "bg-black/10" : ""
+                          }`}
+                        >
+                          <td className="py-2 px-2">{p.name}</td>
+                          <td className="py-2 px-2 text-right">{p.stock}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </Card>
 
@@ -319,16 +340,17 @@ export default function AdminInsights() {
                   {abandoned.map((u) => (
                     <li
                       key={u.id}
-                      className="border border-gray-800 rounded p-3"
+                      className="border border-neutral-800 rounded-lg p-3 hover:bg-neutral-900/50"
                     >
-                      <div className="opacity-70">User: {u.id}</div>
-                      <div>
-                        Items:{" "}
+                      <div className="text-neutral-400 text-xs">User</div>
+                      <div className="font-medium">{u.id}</div>
+                      <div className="mt-1">
+                        <span className="text-neutral-400 text-xs">Items</span>:{" "}
                         {(u.cart?.items || [])
                           .map((i) => `${i.name} x${i.qty}`)
                           .join(", ")}
                       </div>
-                      <div className="opacity-70">
+                      <div className="opacity-70 text-xs mt-1">
                         Updated:{" "}
                         {u.cart?.updatedAt?.toDate
                           ? u.cart.updatedAt.toDate().toLocaleString()
@@ -340,33 +362,41 @@ export default function AdminInsights() {
               )}
             </Card>
 
+            {/* Recent orders */}
             <Card title="Recent Orders (10)">
               {orders.length === 0 ? (
                 <Empty />
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="opacity-70">
-                    <tr>
-                      <th className="text-left py-2">Order</th>
-                      <th className="text-left py-2">Date</th>
-                      <th className="text-right py-2">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.slice(0, 10).map((o) => {
-                      const total =
-                        Number(o.total) ||
-                        Number(o.subtotal || 0) + Number(o.tax || 0);
-                      return (
-                        <tr key={o.id} className="border-t border-gray-800">
-                          <td className="py-2">{o.id}</td>
-                          <td className="py-2">{fmtDate(o.createdAt)}</td>
-                          <td className="py-2 text-right">{money(total)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
+                      <tr>
+                        <th scope="col" className="text-left py-2 px-2">Order</th>
+                        <th scope="col" className="text-left py-2 px-2">Date</th>
+                        <th scope="col" className="text-right py-2 px-2">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="tabular-nums">
+                      {orders.slice(0, 10).map((o, idx) => {
+                        const total =
+                          Number(o.total) ||
+                          Number(o.subtotal || 0) + Number(o.tax || 0);
+                        return (
+                          <tr
+                            key={o.id}
+                            className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${
+                              idx % 2 ? "bg-black/10" : ""
+                            }`}
+                          >
+                            <td className="py-2 px-2">{o.id}</td>
+                            <td className="py-2 px-2">{fmtDate(o.createdAt)}</td>
+                            <td className="py-2 px-2 text-right font-mono">{money(total)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </Card>
 
@@ -379,7 +409,7 @@ export default function AdminInsights() {
                   {feedback.map((f) => (
                     <li
                       key={f.id}
-                      className="border border-gray-800 rounded p-3"
+                      className="border border-neutral-800 rounded-lg p-3 hover:bg-neutral-900/50"
                     >
                       <div className="flex justify-between">
                         <div>Rating: {f.rating ?? "—"}/5</div>
@@ -406,22 +436,22 @@ export default function AdminInsights() {
 
 function KPI({ label, value }) {
   return (
-    <div className="rounded-xl border border-gray-800 p-4">
-      <div className="opacity-70 text-sm">{label}</div>
-      <div className="text-2xl font-semibold mt-1">{value}</div>
+    <div className="rounded-2xl border border-neutral-800 p-4 bg-gradient-to-b from-neutral-900 to-black shadow-sm">
+      <div className="text-neutral-400 text-xs">{label}</div>
+      <div className="text-3xl font-semibold mt-1 font-mono tabular-nums">{value}</div>
     </div>
   );
 }
 
 function Card({ title, children }) {
   return (
-    <div className="rounded-xl border border-gray-800 p-4 bg-[#121212]">
-      <div className="text-lg font-semibold mb-3">{title}</div>
+    <div className="rounded-2xl border border-neutral-800 p-4 bg-[#0b0b0b] shadow-sm">
+      <div className="text-base font-semibold mb-3">{title}</div>
       {children}
     </div>
   );
 }
 
 function Empty() {
-  return <div className="text-sm opacity-70">No data to show.</div>;
+  return <div className="text-sm text-neutral-400">No data to show.</div>;
 }
