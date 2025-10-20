@@ -1,8 +1,10 @@
 // components/CartButton.js
 "use client";
 
+import { useEffect, useState, useRef } from "react";
 import { useCart } from "../app/context/CartProvider";
 import { ShoppingCart } from "lucide-react";
+import MiniCartPopover from "./MiniCartPopover";
 
 export default function CartButton() {
   const { items } = useCart();
@@ -19,44 +21,48 @@ export default function CartButton() {
   const count = items.reduce((n, it) => n + (it.qty || 1), 0);
 
   return (
-
-    <button
-      aria-label="Cart"
-      onClick={() => setOpen(true)}
-      className="relative inline-flex items-center justify-center"
-      title="Cart"
-    >
-      <span style={{ fontSize: 22 }}>
-        <ShoppingCart />
-      </span>
-      {count > 0 && (
-        <span
-          className="absolute -top-2 -right-2 rounded-full text-white text-xs px-1.5"
-          style={{ background: "#ff6a00" }}
-        >
-          {count}
-        </span>
-      )}
-    </button>
-
-    <div className="relative" ref={anchorRef}>
+    <div>
       <button
         aria-label="Cart"
-        onClick={() => setOpen((v) => !v)}
-        className="relative p-2 rounded-full hover:bg-gray-100"
+        onClick={() => setOpen(true)}
+        className="relative inline-flex items-center justify-center"
+        title="Cart"
       >
-        {/* simple cart icon */}
-        <span style={{ fontSize: 18 }}>🛒</span>
+        <span style={{ fontSize: 22 }}>
+          <ShoppingCart />
+        </span>
         {count > 0 && (
-          <span className="absolute -top-1 -right-1 text-[11px] bg-orange-500 text-white rounded-full px-1.5">
+          <span
+            className="absolute -top-2 -right-2 rounded-full text-white text-xs px-1.5"
+            style={{ background: "#ff6a00" }}
+          >
             {count}
           </span>
         )}
       </button>
 
-      {/* The new mini popover */}
-      <MiniCartPopover open={open} onClose={() => setOpen(false)} anchorRef={anchorRef} />
-    </div>
+      <div className="relative" ref={anchorRef}>
+        {/* <button
+          aria-label="Cart"
+          onClick={() => setOpen((v) => !v)}
+          className="relative p-2 rounded-full hover:bg-gray-100"
+        >
+          simple cart icon
+          <span style={{ fontSize: 18 }}>🛒</span>
+          {count > 0 && (
+            <span className="absolute -top-1 -right-1 text-[11px] bg-orange-500 text-white rounded-full px-1.5">
+              {count}
+            </span>
+          )}
+        </button> */}
 
+        {/* The new mini popover */}
+        <MiniCartPopover
+          open={open}
+          onClose={() => setOpen(false)}
+          anchorRef={anchorRef}
+        />
+      </div>
+    </div>
   );
 }

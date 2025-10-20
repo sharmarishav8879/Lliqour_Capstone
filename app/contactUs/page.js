@@ -81,6 +81,7 @@ export default function ContactUs() {
         name: formData.name,
         email: formData.email,
         message: formData.message,
+        status: "Pending",
       });
       alert("Problem reported successfully!");
 
