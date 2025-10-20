@@ -1,9 +1,8 @@
 // components/CartButton.js
 "use client";
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useCart } from "@/app/context/CartProvider";
-import MiniCartPopover from "./MiniCartPopover";
+
+import { useCart } from "../app/context/CartProvider";
+import { ShoppingCart } from "lucide-react";
 
 export default function CartButton() {
   const { items } = useCart();
@@ -20,6 +19,26 @@ export default function CartButton() {
   const count = items.reduce((n, it) => n + (it.qty || 1), 0);
 
   return (
+
+    <button
+      aria-label="Cart"
+      onClick={() => setOpen(true)}
+      className="relative inline-flex items-center justify-center"
+      title="Cart"
+    >
+      <span style={{ fontSize: 22 }}>
+        <ShoppingCart />
+      </span>
+      {count > 0 && (
+        <span
+          className="absolute -top-2 -right-2 rounded-full text-white text-xs px-1.5"
+          style={{ background: "#ff6a00" }}
+        >
+          {count}
+        </span>
+      )}
+    </button>
+
     <div className="relative" ref={anchorRef}>
       <button
         aria-label="Cart"
@@ -38,5 +57,6 @@ export default function CartButton() {
       {/* The new mini popover */}
       <MiniCartPopover open={open} onClose={() => setOpen(false)} anchorRef={anchorRef} />
     </div>
+
   );
 }
