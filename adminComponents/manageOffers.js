@@ -41,6 +41,7 @@ export default function ManageOffers() {
 
     localStorage.setItem("offerProducts", JSON.stringify(updatedOffersList));
 
+    
     setAlertMessage(`${p.name} added to offers!`);
   };
   return (

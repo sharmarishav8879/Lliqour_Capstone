@@ -37,6 +37,8 @@ export default function ContactUs() {
     }
   };
 
+  // Notification bell for new ticket responses
+
   useEffect(() => {
     if (!user) {
       setHasNewTicket(false);
@@ -48,12 +50,21 @@ export default function ContactUs() {
       where("userEmail", "==", user.email)
     );
 
+    let initialLoad = true;
+    let previousCount = [];
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        setHasNewTicket(true);
-      } else {
-        setHasNewTicket(false);
+      const currentCount = snapshot.docs.map((doc) => doc.id);
+      if (!initialLoad) {
+        const newReplies = currentCount.filter(
+          (id) => !previousCount.includes(id)
+        );
+        if (newReplies.length > 0) {
+          setHasNewTicket(true);
+        }
       }
+      previousCount = currentCount;
+      initialLoad = false;
     });
 
     return () => unsubscribe();
