@@ -16,7 +16,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/app/auth/_util/firebase";
 
-// --- currency + human dates
+// --- currency + human dates (unchanged)
 function money(cents = 0) {
   const v = Number(cents || 0) / 100;
   try {
@@ -151,7 +151,7 @@ export default function AdminInsights() {
     return [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
   }, [orders]);
 
-  // --- NEW: Payment mix (orders & revenue by method)
+  // --- Payment mix (kept from previous step)
   const paymentMix = useMemo(() => {
     const m = new Map();
     orders.forEach((o) => {
@@ -169,7 +169,7 @@ export default function AdminInsights() {
     return arr.sort((a, b) => b.revenue - a.revenue);
   }, [orders]);
 
-  // --- CSV exports
+  // --- CSV exports (unchanged)
   function downloadCSV() {
     const rows = [
       ["Order ID", "Date", "Method", "Items", "Subtotal", "Tax", "Total"],
@@ -212,19 +212,25 @@ function downloadTopProductsCSV() {
 
   if (!roleChecked) return null;
 
+  // THEME COLORS
+  // base card bg: very light orange
+  const cardBg = "bg-[#FFF4E6]";      // ~orange-50
+  const cardHdr = "bg-[#FFE3C2]";     // header strip
+  const zebra = ["", "bg-white"];     // zebra rows over light bg
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10 text-neutral-100">
-      <div className="mb-2">
+    <div className="max-w-7xl mx-auto px-4 py-10 text-neutral-900">
+      <div className="mb-3">
         <h1 className="text-3xl font-extrabold tracking-tight">Admin Insights</h1>
-        <p className="text-sm text-neutral-400">Quick view of orders, trends and health.</p>
+        <p className="text-sm text-neutral-600">Quick view of orders, trends and health.</p>
       </div>
 
       {/* toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 py-3">
-        <label htmlFor="period" className="opacity-80 text-sm">Show last</label>
+      <div className={`flex flex-wrap items-center gap-3 mb-6 rounded-xl border-2 border-black ${cardBg} px-3 py-3 shadow-[0_2px_0_#000]`}>
+        <label htmlFor="period" className="text-sm font-medium">Show last</label>
         <select
           id="period"
-          className="bg-black border border-neutral-700 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-600"
+          className="rounded border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
           value={period}
           onChange={(e) => setPeriod(Number(e.target.value))}
         >
@@ -239,13 +245,13 @@ function downloadTopProductsCSV() {
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={downloadCSV}
-            className="px-3 py-2 bg-white text-black rounded text-sm font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/40"
+            className="px-3 py-2 bg-white border-2 border-black rounded text-sm font-semibold shadow-[0_2px_0_#000] active:translate-y-[1px]"
           >
             Export Orders CSV
           </button>
           <button
             onClick={downloadTopProductsCSV}
-            className="px-3 py-2 border border-neutral-700 rounded text-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-600"
+            className="px-3 py-2 bg-[#FFEBD3] border-2 border-black rounded text-sm font-semibold shadow-[0_2px_0_#000] active:translate-y-[1px]"
           >
             Export Top Products CSV
           </button>
@@ -258,10 +264,10 @@ function downloadTopProductsCSV() {
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-neutral-800 p-4 bg-[#111] shadow-sm animate-pulse"
+              className={`rounded-2xl border-2 border-black ${cardBg} p-4 shadow-[0_3px_0_#000] animate-pulse`}
             >
-              <div className="h-4 w-24 bg-neutral-700 rounded mb-3" />
-              <div className="h-6 w-32 bg-neutral-700 rounded" />
+              <div className="h-4 w-24 bg-white/60 rounded mb-3" />
+              <div className="h-6 w-32 bg-white/60 rounded" />
             </div>
           ))}
         </div>
@@ -269,22 +275,22 @@ function downloadTopProductsCSV() {
         <>
           {/* KPI cards */}
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <KPI label="Revenue" value={money(metrics.revenueCents)} />
-            <KPI label="Orders" value={metrics.ordersCount} />
-            <KPI label="Avg Order" value={money(metrics.aov)} />
-            <KPI label="Items Sold" value={metrics.itemsSold} />
+            <KPI label="Revenue" value={money(metrics.revenueCents)} cardBg={cardBg} />
+            <KPI label="Orders" value={metrics.ordersCount} cardBg={cardBg} />
+            <KPI label="Avg Order" value={money(metrics.aov)} cardBg={cardBg} />
+            <KPI label="Items Sold" value={metrics.itemsSold} cardBg={cardBg} />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Top products */}
-            <Card title="Top Products">
+            <Card title="Top Products" cardBg={cardBg} cardHdr={cardHdr}>
               {topProducts.length === 0 ? (
                 <Empty />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
-                      <tr>
+                    <thead className={`${cardHdr}`}>
+                      <tr className="border-b-2 border-black">
                         <th scope="col" className="text-left py-2 px-2">Product</th>
                         <th scope="col" className="text-right py-2 px-2">Qty</th>
                         <th scope="col" className="text-right py-2 px-2">Revenue</th>
@@ -294,7 +300,7 @@ function downloadTopProductsCSV() {
                       {topProducts.map((p, idx) => (
                         <tr
                           key={p.name}
-                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
+                          className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
                         >
                           <td className="py-2 px-2">{p.name}</td>
                           <td className="py-2 px-2 text-right">{p.qty}</td>
@@ -308,17 +314,17 @@ function downloadTopProductsCSV() {
             </Card>
 
             {/* Low stock */}
-            <Card title="Low Stock (≤ 10)">
+            <Card title="Low Stock (≤ 10)" cardBg={cardBg} cardHdr={cardHdr}>
               {lowStock.length === 0 ? (
-                <div className="text-sm text-neutral-400">
+                <div className="text-sm text-neutral-700">
                   Either everything’s fine or your products don’t have a
                   <code className="mx-1">stock</code> field.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
-                      <tr>
+                    <thead className={`${cardHdr}`}>
+                      <tr className="border-b-2 border-black">
                         <th scope="col" className="text-left py-2 px-2">Product</th>
                         <th scope="col" className="text-right py-2 px-2">Stock</th>
                       </tr>
@@ -327,7 +333,7 @@ function downloadTopProductsCSV() {
                       {lowStock.map((p, idx) => (
                         <tr
                           key={p.id}
-                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
+                          className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
                         >
                           <td className="py-2 px-2">{p.name}</td>
                           <td className="py-2 px-2 text-right">{p.stock}</td>
@@ -340,7 +346,7 @@ function downloadTopProductsCSV() {
             </Card>
 
             {/* Abandoned carts */}
-            <Card title="Abandoned Carts (24h+)">
+            <Card title="Abandoned Carts (24h+)" cardBg={cardBg} cardHdr={cardHdr}>
               {abandoned.length === 0 ? (
                 <Empty />
               ) : (
@@ -348,15 +354,15 @@ function downloadTopProductsCSV() {
                   {abandoned.map((u) => (
                     <li
                       key={u.id}
-                      className="border border-neutral-800 rounded-lg p-3 hover:bg-neutral-900/50"
+                      className="border-2 border-black rounded-lg p-3 bg-white hover:bg-white/80"
                     >
-                      <div className="text-neutral-400 text-xs">User</div>
+                      <div className="text-neutral-600 text-xs">User</div>
                       <div className="font-medium">{u.id}</div>
                       <div className="mt-1">
-                        <span className="text-neutral-400 text-xs">Items</span>:{" "}
+                        <span className="text-neutral-600 text-xs">Items</span>:{" "}
                         {(u.cart?.items || []).map((i) => `${i.name} x${i.qty}`).join(", ")}
                       </div>
-                      <div className="opacity-70 text-xs mt-1">
+                      <div className="text-neutral-600 text-xs mt-1">
                         Updated:{" "}
                         {u.cart?.updatedAt?.toDate ? u.cart.updatedAt.toDate().toLocaleString() : "—"}
                       </div>
@@ -367,14 +373,14 @@ function downloadTopProductsCSV() {
             </Card>
 
             {/* Recent orders */}
-            <Card title="Recent Orders (10)">
+            <Card title="Recent Orders (10)" cardBg={cardBg} cardHdr={cardHdr}>
               {orders.length === 0 ? (
                 <Empty />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
-                      <tr>
+                    <thead className={`${cardHdr}`}>
+                      <tr className="border-b-2 border-black">
                         <th scope="col" className="text-left py-2 px-2">Order</th>
                         <th scope="col" className="text-left py-2 px-2">Date</th>
                         <th scope="col" className="text-right py-2 px-2">Total</th>
@@ -386,7 +392,7 @@ function downloadTopProductsCSV() {
                         return (
                           <tr
                             key={o.id}
-                            className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
+                            className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
                           >
                             <td className="py-2 px-2">{o.id}</td>
                             <td className="py-2 px-2">{fmtDate(o.createdAt)}</td>
@@ -401,7 +407,7 @@ function downloadTopProductsCSV() {
             </Card>
 
             {/* Latest feedback */}
-            <Card title="Latest Feedback">
+            <Card title="Latest Feedback" cardBg={cardBg} cardHdr={cardHdr}>
               {feedback.length === 0 ? (
                 <Empty />
               ) : (
@@ -409,30 +415,30 @@ function downloadTopProductsCSV() {
                   {feedback.map((f) => (
                     <li
                       key={f.id}
-                      className="border border-neutral-800 rounded-lg p-3 hover:bg-neutral-900/50"
+                      className="border-2 border-black rounded-lg p-3 bg-white hover:bg-white/80"
                     >
                       <div className="flex justify-between">
                         <div>Rating: {f.rating ?? "—"}/5</div>
-                        <div className="opacity-70">
+                        <div className="text-neutral-600">
                           {f.createdAt?.toDate ? f.createdAt.toDate().toLocaleString() : ""}
                         </div>
                       </div>
-                      {f.comment && <div className="opacity-90 mt-1">{f.comment}</div>}
+                      {f.comment && <div className="mt-1">{f.comment}</div>}
                     </li>
                   ))}
                 </ul>
               )}
             </Card>
 
-            {/* NEW: Payment Mix (fills the right empty space) */}
-            <Card title={`Payment Mix (${period}d)`}>
+            {/* Payment Mix */}
+            <Card title={`Payment Mix (${period}d)`} cardBg={cardBg} cardHdr={cardHdr}>
               {paymentMix.length === 0 ? (
                 <Empty />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
-                      <tr>
+                    <thead className={`${cardHdr}`}>
+                      <tr className="border-b-2 border-black">
                         <th scope="col" className="text-left py-2 px-2">Method</th>
                         <th scope="col" className="text-right py-2 px-2">Orders</th>
                         <th scope="col" className="text-right py-2 px-2">Revenue</th>
@@ -443,7 +449,7 @@ function downloadTopProductsCSV() {
                       {paymentMix.map((r, idx) => (
                         <tr
                           key={r.method}
-                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
+                          className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
                         >
                           <td className="py-2 px-2">{r.method}</td>
                           <td className="py-2 px-2 text-right">{r.orders}</td>
@@ -463,24 +469,28 @@ function downloadTopProductsCSV() {
   );
 }
 
-function KPI({ label, value }) {
+function KPI({ label, value, cardBg }) {
   return (
-    <div className="rounded-2xl border border-neutral-800 p-4 bg-gradient-to-b from-neutral-900 to-black shadow-sm">
-      <div className="text-neutral-400 text-xs">{label}</div>
-      <div className="text-3xl font-semibold mt-1 font-mono tabular-nums">{value}</div>
+    <div className={`rounded-2xl border-2 border-black ${cardBg} p-4 shadow-[0_3px_0_#000]`}>
+      <div className="text-xs text-neutral-700 font-semibold">{label}</div>
+      <div className="text-3xl font-extrabold mt-1 font-mono tabular-nums tracking-tight">
+        {value}
+      </div>
     </div>
   );
 }
 
-function Card({ title, children }) {
+function Card({ title, children, cardBg, cardHdr }) {
   return (
-    <div className="rounded-2xl border border-neutral-800 p-4 bg-[#0b0b0b] shadow-sm">
-      <div className="text-base font-semibold mb-3">{title}</div>
-      {children}
+    <div className={`rounded-2xl border-2 border-black ${cardBg} shadow-[0_3px_0_#000]`}>
+      <div className={`text-base font-semibold px-4 py-3 border-b-2 border-black ${cardHdr}`}>
+        {title}
+      </div>
+      <div className="p-4">{children}</div>
     </div>
   );
 }
 
 function Empty() {
-  return <div className="text-sm text-neutral-400">No data to show.</div>;
+  return <div className="text-sm text-neutral-700">No data to show.</div>;
 }
