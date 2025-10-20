@@ -126,9 +126,7 @@ export default function AdminInsights() {
     let revenueCents = 0;
     let itemsSold = 0;
     orders.forEach((o) => {
-      // support either explicit total, or subtotal + tax
-      const total =
-        Number(o.total) || Number(o.subtotal || 0) + Number(o.tax || 0);
+      const total = Number(o.total) || Number(o.subtotal || 0) + Number(o.tax || 0);
       revenueCents += total;
       (o.items || []).forEach((it) => {
         itemsSold += Number(it.qty || 0);
@@ -144,17 +142,31 @@ export default function AdminInsights() {
     orders.forEach((o) =>
       (o.items || []).forEach((it) => {
         const key = it.productId || it.id || it.name;
-        const prev = map.get(key) || {
-          name: it.name || key,
-          qty: 0,
-          revenue: 0,
-        };
+        const prev = map.get(key) || { name: it.name || key, qty: 0, revenue: 0 };
         prev.qty += Number(it.qty || 0);
         prev.revenue += Number(it.price || 0) * Number(it.qty || 0);
         map.set(key, prev);
       })
     );
     return [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
+  }, [orders]);
+
+  // --- NEW: Payment mix (orders & revenue by method)
+  const paymentMix = useMemo(() => {
+    const m = new Map();
+    orders.forEach((o) => {
+      const method = (o.method || o.paymentMethod || "Unknown").toString();
+      const total = Number(o.total) || Number(o.subtotal || 0) + Number(o.tax || 0);
+      const prev = m.get(method) || { method, orders: 0, revenue: 0 };
+      prev.orders += 1;
+      prev.revenue += total;
+      m.set(method, prev);
+    });
+    const arr = [...m.values()].map((x) => ({
+      ...x,
+      avg: x.orders ? x.revenue / x.orders : 0,
+    }));
+    return arr.sort((a, b) => b.revenue - a.revenue);
   }, [orders]);
 
   // --- CSV exports
@@ -282,9 +294,7 @@ function downloadTopProductsCSV() {
                       {topProducts.map((p, idx) => (
                         <tr
                           key={p.name}
-                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${
-                            idx % 2 ? "bg-black/10" : ""
-                          }`}
+                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
                         >
                           <td className="py-2 px-2">{p.name}</td>
                           <td className="py-2 px-2 text-right">{p.qty}</td>
@@ -317,9 +327,7 @@ function downloadTopProductsCSV() {
                       {lowStock.map((p, idx) => (
                         <tr
                           key={p.id}
-                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${
-                            idx % 2 ? "bg-black/10" : ""
-                          }`}
+                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
                         >
                           <td className="py-2 px-2">{p.name}</td>
                           <td className="py-2 px-2 text-right">{p.stock}</td>
@@ -346,15 +354,11 @@ function downloadTopProductsCSV() {
                       <div className="font-medium">{u.id}</div>
                       <div className="mt-1">
                         <span className="text-neutral-400 text-xs">Items</span>:{" "}
-                        {(u.cart?.items || [])
-                          .map((i) => `${i.name} x${i.qty}`)
-                          .join(", ")}
+                        {(u.cart?.items || []).map((i) => `${i.name} x${i.qty}`).join(", ")}
                       </div>
                       <div className="opacity-70 text-xs mt-1">
                         Updated:{" "}
-                        {u.cart?.updatedAt?.toDate
-                          ? u.cart.updatedAt.toDate().toLocaleString()
-                          : "—"}
+                        {u.cart?.updatedAt?.toDate ? u.cart.updatedAt.toDate().toLocaleString() : "—"}
                       </div>
                     </li>
                   ))}
@@ -378,15 +382,11 @@ function downloadTopProductsCSV() {
                     </thead>
                     <tbody className="tabular-nums">
                       {orders.slice(0, 10).map((o, idx) => {
-                        const total =
-                          Number(o.total) ||
-                          Number(o.subtotal || 0) + Number(o.tax || 0);
+                        const total = Number(o.total) || Number(o.subtotal || 0) + Number(o.tax || 0);
                         return (
                           <tr
                             key={o.id}
-                            className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${
-                              idx % 2 ? "bg-black/10" : ""
-                            }`}
+                            className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
                           >
                             <td className="py-2 px-2">{o.id}</td>
                             <td className="py-2 px-2">{fmtDate(o.createdAt)}</td>
@@ -414,17 +414,46 @@ function downloadTopProductsCSV() {
                       <div className="flex justify-between">
                         <div>Rating: {f.rating ?? "—"}/5</div>
                         <div className="opacity-70">
-                          {f.createdAt?.toDate
-                            ? f.createdAt.toDate().toLocaleString()
-                            : ""}
+                          {f.createdAt?.toDate ? f.createdAt.toDate().toLocaleString() : ""}
                         </div>
                       </div>
-                      {f.comment && (
-                        <div className="opacity-90 mt-1">{f.comment}</div>
-                      )}
+                      {f.comment && <div className="opacity-90 mt-1">{f.comment}</div>}
                     </li>
                   ))}
                 </ul>
+              )}
+            </Card>
+
+            {/* NEW: Payment Mix (fills the right empty space) */}
+            <Card title={`Payment Mix (${period}d)`}>
+              {paymentMix.length === 0 ? (
+                <Empty />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-neutral-900 text-neutral-300 sticky top-0">
+                      <tr>
+                        <th scope="col" className="text-left py-2 px-2">Method</th>
+                        <th scope="col" className="text-right py-2 px-2">Orders</th>
+                        <th scope="col" className="text-right py-2 px-2">Revenue</th>
+                        <th scope="col" className="text-right py-2 px-2">Avg</th>
+                      </tr>
+                    </thead>
+                    <tbody className="tabular-nums">
+                      {paymentMix.map((r, idx) => (
+                        <tr
+                          key={r.method}
+                          className={`border-t border-neutral-800 hover:bg-neutral-900/50 ${idx % 2 ? "bg-black/10" : ""}`}
+                        >
+                          <td className="py-2 px-2">{r.method}</td>
+                          <td className="py-2 px-2 text-right">{r.orders}</td>
+                          <td className="py-2 px-2 text-right font-mono">{money(r.revenue)}</td>
+                          <td className="py-2 px-2 text-right font-mono">{money(r.avg)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </Card>
           </div>
