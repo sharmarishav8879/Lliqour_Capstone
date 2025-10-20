@@ -1,185 +1,158 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { getAllProducts } from "@/lib/products";
+import React, { useState, useEffect } from "react";
 import { UpdateProducts as updateProductInDB } from "@/lib/modifyProducts";
 
-export default function UpdateProducts() {
-  const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
+const countries = [
+  "USA", "Canada", "UK", "France", "Germany", "Italy", "Spain", "Ireland", "Australia",
+  "Mexico", "Brazil", "Japan", "China", "India", "Russia", "South Africa", "Belgium",
+  "Netherlands", "Sweden", "Norway", "Denmark", "Finland", "Poland", "Argentina"
+];
+
+export default function UpdateProducts({ product, onClose, onUpdated }) {
+  const [formData, setFormData] = useState(product || {});
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const allProducts = await getAllProducts();
-      setProducts(allProducts);
-    };
-    fetchProducts();
-  }, []);
+    if (product) setFormData(product);
+  }, [product]);
 
-  // Handle the update form submission
-  const handleUpdate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await updateProductInDB(selectedProduct.docId, selectedProduct);
-      alert("Product updated successfully!");
-      setSelectedProduct(null);
 
-      // Refresh products list
-      const allProducts = await getAllProducts();
-      const uniqueProducts = Array.from(
-        new Map(allProducts.map((p) => [p.docId, p])).values()
-      );
-      setProducts(uniqueProducts);
-    } catch (error) {
-      alert(`Error updating product: ${error.message}`);
-      console.error("Error updating product:", error);
+    if (!formData.id) {
+      alert("Product ID is missing, cannot update!");
+      return;
+    }
+
+    try {
+      const updatedData = {
+        ...formData,
+        price: parseFloat(formData.price) || 0,
+        discount: parseFloat(formData.discount) || 0,
+        image: formData.image || formData.imageUrl || "/placeholderProduct.jpg",
+      };
+
+      // Call your Firestore update function with the document ID
+      await updateProductInDB(formData.id, updatedData);
+
+      alert("Product updated successfully!");
+      if (onUpdated) onUpdated(updatedData);
+      onClose();
+    } catch (err) {
+      alert(`Failed to update product: ${err.message}`);
+      console.error(err);
     }
   };
 
+  if (!product) return null;
+
   return (
-    <div className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black gap-6">
-      <h1 className="text-3xl font-bold">Update Products</h1>
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-80 bg-white text-black font-serif rounded-2xl shadow-2xl z-20 p-5 max-h-[85vh] overflow-y-auto flex flex-col gap-3 animate-fadeIn"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl font-bold text-center mb-2">Edit Product</h2>
 
-      {/* Products list */}
-      <div className="w-full max-w-4xl flex flex-col gap-4">
-        {products.map((product) => (
-          <div
-            key={product.docId}
-            className="p-4 border border-gray-300 rounded flex justify-between items-center"
+        <form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Name"
+            value={formData.name || ""}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="border p-2 rounded-lg"
+            required
+          />
+
+          <input
+            type="number"
+            placeholder="Price"
+            value={formData.price || ""}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            className="border p-2 rounded-lg"
+            required
+          />
+
+          <select
+            value={formData.category || ""}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="border p-2 rounded-lg"
           >
-            <div>
-              <h3 className="font-bold">{product.name}</h3>
-              <p>${product.price}</p>
-            </div>
-            <button
-              className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
-              onClick={() => setSelectedProduct(product)}
-            >
-              Edit
-            </button>
-          </div>
-        ))}
+            <option value="">Select Category</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            placeholder="ABV"
+            value={formData.abv || ""}
+            onChange={(e) => setFormData({ ...formData, abv: e.target.value })}
+            className="border p-2 rounded-lg"
+          />
+
+          <input
+            type="text"
+            placeholder="Size"
+            value={formData.size || ""}
+            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+            className="border p-2 rounded-lg"
+          />
+
+          <select
+            value={formData.origin || ""}
+            onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+            className="border p-2 rounded-lg"
+          >
+            <option value="">Select Country</option>
+            {countries.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          <textarea
+            placeholder="Description"
+            value={formData.description || ""}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="border p-2 rounded-lg min-h-[60px]"
+          />
+
+          <input
+            type="number"
+            placeholder="Discount"
+            value={formData.discount || 0}
+            onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
+            className="border p-2 rounded-lg"
+          />
+
+          <input
+            type="text"
+            placeholder="Image URL"
+            value={formData.image || "/placeholderProduct.jpg"}
+            onChange={(e) => setFormData({ ...formData, image: e.target.value || "/placeholderProduct.jpg" })}
+            className="border p-2 rounded-lg"
+          />
+
+          <button
+            type="submit"
+            className="mt-2 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg transition-colors"
+          >
+            Update Product
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </form>
       </div>
-
-      {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <form
-            onSubmit={handleUpdate}
-            className="w-full max-w-2xl p-6 bg-white rounded shadow-lg flex flex-col gap-3"
-          >
-            <h2 className="text-2xl font-bold">
-              Editing: {selectedProduct.name}
-            </h2>
-
-            <input
-              type="text"
-              placeholder="Name"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.name}
-              onChange={(e) =>
-                setSelectedProduct({ ...selectedProduct, name: e.target.value })
-              }
-            />
-            <input
-              type="number"
-              placeholder="Price"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.price}
-              onChange={(e) =>
-                setSelectedProduct({
-                  ...selectedProduct,
-                  price: parseFloat(e.target.value),
-                })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Category"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.category}
-              onChange={(e) =>
-                setSelectedProduct({
-                  ...selectedProduct,
-                  category: e.target.value,
-                })
-              }
-            />
-            <input
-              type="text"
-              placeholder="ABV"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.abv}
-              onChange={(e) =>
-                setSelectedProduct({
-                  ...selectedProduct,
-                  abv: parseFloat(e.target.value),
-                })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Size"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.size}
-              onChange={(e) =>
-                setSelectedProduct({ ...selectedProduct, size: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Origin"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.origin}
-              onChange={(e) =>
-                setSelectedProduct({
-                  ...selectedProduct,
-                  origin: e.target.value,
-                })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Description"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.description}
-              onChange={(e) =>
-                setSelectedProduct({
-                  ...selectedProduct,
-                  description: e.target.value,
-                })
-              }
-            />
-            <input
-              type="number"
-              placeholder="Discount"
-              className="border border-gray-300 rounded p-2"
-              value={selectedProduct.discount}
-              onChange={(e) =>
-                setSelectedProduct({
-                  ...selectedProduct,
-                  discount: parseFloat(e.target.value),
-                })
-              }
-            />
-
-            <div className="flex gap-3 mt-4">
-              <button
-                type="submit"
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedProduct(null)}
-                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   );
 }
