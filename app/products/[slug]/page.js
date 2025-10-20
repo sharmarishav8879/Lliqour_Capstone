@@ -3,18 +3,32 @@ import AddToCartClient from "./AddToCartClient";
 import { getProductBySlug } from "@/lib/products";
 
 export default async function ProductDetail({ params }) {
-  // ✅ no await here
   const { slug } = params;
 
-  const product = await getProductBySlug(slug);
+  const productDoc = await getProductBySlug(slug);
 
-  if (!product) {
+  if (!productDoc) {
     return (
       <main className="p-4">
         <h2>Product not found.</h2>
       </main>
     );
   }
+
+  const product = {
+    id: productDoc.id,
+    name: productDoc.name,
+    price: productDoc.price,
+    image: productDoc.image || productDoc.imageUrl || "/fallback.png",
+    slug: productDoc.slug,
+    category: productDoc.category,
+    size: productDoc.size,
+    abv: productDoc.abv,
+    origin: productDoc.origin,
+    description: productDoc.description,
+    discount: productDoc.discount,
+    createdAt: productDoc.createdAt?.toDate?.()?.toISOString() || null,
+  };
 
   return (
     <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black">
@@ -60,7 +74,6 @@ export default async function ProductDetail({ params }) {
 
           {product.description && <p className="mt-3">{product.description}</p>}
 
-          {/* ✅ client wrapper renders the Add button */}
           <AddToCartClient product={product} />
         </div>
       </div>
