@@ -190,6 +190,9 @@ export default function AdminInsights() {
           <option value={14}>14 days</option>
           <option value={30}>30 days</option>
           <option value={90}>90 days</option>
+          <option value={180}>180 days</option>
+          <option value={365}>365 days</option>
+
         </select>
 
         <button
