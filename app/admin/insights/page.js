@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
@@ -16,7 +17,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/app/auth/_util/firebase";
 
-// --- currency + human dates (unchanged)
+// --- formatting
 function money(cents = 0) {
   const v = Number(cents || 0) / 100;
   try {
@@ -30,6 +31,27 @@ function fmtDate(ts) {
   return d ? d.toLocaleString() : "";
 }
 
+// --- helpers: normalize data coming from checkout variants
+function toDateFlexible(value) {
+  if (value?.toDate) return value.toDate();
+  if (value instanceof Date) return value;
+  if (typeof value === "number") {
+    const ms = value < 1e12 ? value * 1000 : value;
+    return new Date(ms);
+  }
+  if (typeof value === "string") {
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+}
+function toCents(value) {
+  const n = Number(value || 0);
+  if (!isFinite(n) || n === 0) return 0;
+  if (Number.isInteger(n) && n >= 1000) return n; // likely cents
+  return Math.round(n * 100); // likely dollars
+}
+
 export default function AdminInsights() {
   const router = useRouter();
   const [roleChecked, setRoleChecked] = useState(false);
@@ -39,6 +61,14 @@ export default function AdminInsights() {
   const [lowStock, setLowStock] = useState([]);
   const [abandoned, setAbandoned] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // NEW: debug state
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [debugScan, setDebugScan] = useState({
+    topLevelCount: null,
+    cg: [],       // [{name, count, samples:[...]}]
+    errors: [],   // strings
+  });
 
   // ---- guard: admin only
   useEffect(() => {
@@ -52,40 +82,90 @@ export default function AdminInsights() {
     return () => unsub();
   }, [router]);
 
-  // ---- fetch datasets for the selected period
+  // ---- fetch datasets for the selected period (robust)
   useEffect(() => {
     if (!roleChecked) return;
     (async () => {
       setLoading(true);
 
-      const since = Timestamp.fromDate(
-        new Date(Date.now() - period * 24 * 60 * 60 * 1000)
-      );
+      const sinceTs = Timestamp.fromDate(new Date(Date.now() - period * 24 * 60 * 60 * 1000));
+      const sinceDate = sinceTs.toDate();
 
-      // orders
-      const oq = query(
-        collection(db, "orders"),
-        where("createdAt", ">=", since),
-        orderBy("createdAt", "desc")
-      );
-      const os = await getDocs(oq);
-      const o = os.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setOrders(o);
+      let ordersAll = [];
+      const dbgErrors = [];
+      const dbgCg = [];
 
-      // feedback (latest 10)
+      // 1) Try top-level /orders with server filter
       try {
-        const fq = query(
-          collection(db, "feedback"),
-          orderBy("createdAt", "desc"),
-          limit(10)
+        const oq = query(
+          collection(db, "orders"),
+          where("createdAt", ">=", sinceTs),
+          orderBy("createdAt", "desc")
         );
+        const os = await getDocs(oq);
+        const top = os.docs.map((d) => ({ id: d.id, ...d.data(), _path: d.ref.path }));
+        ordersAll = top;
+        // debug: raw count of top-level (regardless of period)
+        try {
+          const allTop = await getDocs(collection(db, "orders"));
+          debugScan.topLevelCount = allTop.size;
+        } catch (e) {
+          dbgErrors.push(`Top-level count failed: ${String(e?.message || e)}`);
+        }
+      } catch (e) {
+        dbgErrors.push(`Top-level period query failed: ${String(e?.message || e)}`);
+      }
+
+      // 2) If nothing (or you want broader catch), scan subcollections commonly used
+      const names = ["orders", "order", "transactions", "sales"];
+      for (const name of names) {
+        try {
+          // no orderBy — avoids index errors if field missing; we filter in JS
+          const snap = await getDocs(query(collectionGroup(db, name), limit(50)));
+          const arr = snap.docs.map((d) => {
+            const data = d.data();
+            return {
+              id: d.id,
+              _path: d.ref.path,
+              createdAt: data.createdAt ?? data.created_at ?? data.date ?? data.createdOn ?? null,
+              total: data.total ?? data.amount ?? data.grandTotal ?? null,
+              method: data.method ?? data.paymentMethod ?? null,
+              itemsLen: Array.isArray(data.items) ? data.items.length : 0,
+              _raw: data,
+            };
+          });
+          dbgCg.push({ name, count: arr.length, samples: arr.slice(0, 5) });
+
+          // Merge into ordersAll if we still have none
+          if (ordersAll.length === 0 && arr.length > 0) {
+            const filtered = arr
+              .filter((o) => {
+                const d = toDateFlexible(o.createdAt);
+                return d ? d >= sinceDate : true;
+              })
+              .map((o) => o._raw); // strip debug fields; keep raw data shape
+            // We keep as-is; below metrics/topProducts handle flexible fields
+            ordersAll = filtered;
+          }
+        } catch (e) {
+          dbgErrors.push(`CG scan '${name}' failed: ${String(e?.message || e)}`);
+        }
+      }
+
+      setDebugScan((prev) => ({ ...prev, cg: dbgCg, errors: dbgErrors }));
+
+      setOrders(ordersAll);
+
+      // FEEDBACK (latest 10)
+      try {
+        const fq = query(collection(db, "feedback"), orderBy("createdAt", "desc"), limit(10));
         const fs = await getDocs(fq);
         setFeedback(fs.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch {
         setFeedback([]);
       }
 
-      // low stock (if you have `stock` on products)
+      // LOW STOCK
       try {
         const lq = query(
           collection(db, "products"),
@@ -99,15 +179,10 @@ export default function AdminInsights() {
         setLowStock([]);
       }
 
-      // abandoned carts (cart updated >24h ago and has items)
+      // ABANDONED CARTS
       try {
-        const cutoff = Timestamp.fromDate(
-          new Date(Date.now() - 24 * 60 * 60 * 1000)
-        );
-        const aq = query(
-          collection(db, "users"),
-          where("cart.updatedAt", "<", cutoff)
-        );
+        const cutoff = Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000));
+        const aq = query(collection(db, "users"), where("cart.updatedAt", "<", cutoff));
         const as = await getDocs(aq);
         const filtered = as.docs
           .map((d) => ({ id: d.id, ...d.data() }))
@@ -121,16 +196,16 @@ export default function AdminInsights() {
     })();
   }, [roleChecked, period]);
 
-  // ---- computed metrics
+  // ---- computed metrics (robust cents/dollars handling)
   const metrics = useMemo(() => {
     let revenueCents = 0;
     let itemsSold = 0;
     orders.forEach((o) => {
-      const total = Number(o.total) || Number(o.subtotal || 0) + Number(o.tax || 0);
+      const sub = toCents(o.subtotal);
+      const tax = toCents(o.tax);
+      const total = toCents(o.total ?? (sub + tax));
       revenueCents += total;
-      (o.items || []).forEach((it) => {
-        itemsSold += Number(it.qty || 0);
-      });
+      (o.items || []).forEach((it) => (itemsSold += Number(it.qty || 0)));
     });
     const ordersCount = orders.length;
     const aov = ordersCount ? revenueCents / ordersCount : 0;
@@ -143,49 +218,53 @@ export default function AdminInsights() {
       (o.items || []).forEach((it) => {
         const key = it.productId || it.id || it.name;
         const prev = map.get(key) || { name: it.name || key, qty: 0, revenue: 0 };
-        prev.qty += Number(it.qty || 0);
-        prev.revenue += Number(it.price || 0) * Number(it.qty || 0);
+        const qty = Number(it.qty || 0);
+        const priceCents = toCents(it.price || it.priceCents || it.amount);
+        prev.qty += qty;
+        prev.revenue += priceCents * qty;
         map.set(key, prev);
       })
     );
     return [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
   }, [orders]);
 
-  // --- Payment mix (kept from previous step)
   const paymentMix = useMemo(() => {
     const m = new Map();
     orders.forEach((o) => {
       const method = (o.method || o.paymentMethod || "Unknown").toString();
-      const total = Number(o.total) || Number(o.subtotal || 0) + Number(o.tax || 0);
+      const sub = toCents(o.subtotal);
+      const tax = toCents(o.tax);
+      const total = toCents(o.total ?? (sub + tax));
       const prev = m.get(method) || { method, orders: 0, revenue: 0 };
       prev.orders += 1;
       prev.revenue += total;
       m.set(method, prev);
     });
-    const arr = [...m.values()].map((x) => ({
-      ...x,
-      avg: x.orders ? x.revenue / x.orders : 0,
-    }));
+    const arr = [...m.values()].map((x) => ({ ...x, avg: x.orders ? x.revenue / x.orders : 0 }));
     return arr.sort((a, b) => b.revenue - a.revenue);
   }, [orders]);
 
-  // --- CSV exports (unchanged)
+  // --- CSV exports (unchanged except robust totals/dates)
   function downloadCSV() {
     const rows = [
       ["Order ID", "Date", "Method", "Items", "Subtotal", "Tax", "Total"],
-      ...orders.map((o) => [
-        o.id,
-        fmtDate(o.createdAt),
-        o.method || o.paymentMethod || "",
-        (o.items || []).map((i) => `${i.name} x${i.qty}`).join("; "),
-        money(o.subtotal || 0),
-        money(o.tax || 0),
-        money(o.total || (o.subtotal || 0) + (o.tax || 0)),
-      ]),
+      ...orders.map((o) => {
+        const sub = toCents(o.subtotal);
+        const tax = toCents(o.tax);
+        const total = toCents(o.total ?? (sub + tax));
+        const created = toDateFlexible(o.createdAt || o.created_at || o.date || o.createdOn);
+        return [
+          o.id,
+          created ? created.toLocaleString() : "",
+          o.method || o.paymentMethod || "",
+          (o.items || []).map((i) => `${i.name} x${i.qty}`).join("; "),
+          money(sub),
+          money(tax),
+          money(total),
+        ];
+      }),
     ];
-    const csv = rows
-      .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    const csv = rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -194,35 +273,41 @@ export default function AdminInsights() {
     URL.revokeObjectURL(a.href);
   }
 
-function downloadTopProductsCSV() {
-  const rows = [
-    ["Product", "Quantity", "Revenue"],
-    ...topProducts.map((p) => [p.name, p.qty, money(p.revenue)]),
-  ];
-  const csv = rows
-    .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `insights-top-products-${period}d.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
+  function downloadTopProductsCSV() {
+    const rows = [
+      ["Product", "Quantity", "Revenue"],
+      ...topProducts.map((p) => [p.name, p.qty, money(p.revenue)]),
+    ];
+    const csv = rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `insights-top-products-${period}d.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
 
   if (!roleChecked) return null;
 
-  // THEME COLORS
-  // base card bg: very light orange
-  const cardBg = "bg-[#FFF4E6]";      // ~orange-50
-  const cardHdr = "bg-[#FFE3C2]";     // header strip
-  const zebra = ["", "bg-white"];     // zebra rows over light bg
+  // light-orange theme tokens
+  const cardBg = "bg-[#FFF4E6]";
+  const cardHdr = "bg-[#FFE3C2]";
+  const zebra = ["", "bg-white"];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 text-neutral-900">
-      <div className="mb-3">
-        <h1 className="text-3xl font-extrabold tracking-tight">Admin Insights</h1>
-        <p className="text-sm text-neutral-600">Quick view of orders, trends and health.</p>
+      <div className="mb-3 flex items-end gap-2">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight">Admin Insights</h1>
+          <p className="text-sm text-neutral-600">Quick view of orders, trends and health.</p>
+        </div>
+        <button
+          onClick={() => setDebugOpen((v) => !v)}
+          className="ml-auto px-3 py-2 bg-white border-2 border-black rounded text-xs font-semibold shadow-[0_2px_0_#000] active:translate-y-[1px]"
+          title="Toggle diagnostics"
+        >
+          {debugOpen ? "Hide Debug" : "Debug data"}
+        </button>
       </div>
 
       {/* toolbar */}
@@ -258,8 +343,62 @@ function downloadTopProductsCSV() {
         </div>
       </div>
 
+      {/* DEBUG CARD (toggle) */}
+      {debugOpen && (
+        <div className={`mb-6 rounded-2xl border-2 border-black ${cardBg} shadow-[0_3px_0_#000]`}>
+          <div className={`text-base font-semibold px-4 py-3 border-b-2 border-black ${cardHdr}`}>
+            Diagnostics (live Firestore scan)
+          </div>
+          <div className="p-4 text-sm">
+            <div className="mb-2">
+              <div className="font-semibold">Top-level <code>/orders</code> count:</div>
+              <div>{debugScan.topLevelCount ?? "—"}</div>
+            </div>
+            <div className="mb-2">
+              <div className="font-semibold">Subcollection scans (first 5 each):</div>
+              {debugScan.cg.length === 0 ? (
+                <div className="text-neutral-700">No subcollection results yet.</div>
+              ) : (
+                <ul className="list-disc pl-5 space-y-2">
+                  {debugScan.cg.map((g) => (
+                    <li key={g.name}>
+                      <span className="font-medium">{g.name}</span> — found <b>{g.count}</b>
+                      <div className="mt-1 grid sm:grid-cols-2 gap-2">
+                        {g.samples.map((s, i) => (
+                          <div key={i} className="rounded border border-black/20 bg-white p-2 overflow-auto">
+                            <div className="text-xs text-neutral-600 mb-1">{s._path}</div>
+                            <pre className="text-[11px] whitespace-pre-wrap break-all">
+{JSON.stringify({
+  id: s.id,
+  createdAt: typeof s.createdAt === "object" && s.createdAt?.seconds ? `Timestamp(${s.createdAt.seconds})` : s.createdAt,
+  total: s.total,
+  method: s.method,
+  itemsLen: s.itemsLen
+}, null, 2)}
+                            </pre>
+                          </div>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {debugScan.errors.length > 0 && (
+              <div className="mt-3">
+                <div className="font-semibold text-red-700">Errors</div>
+                <ul className="list-disc pl-5">
+                  {debugScan.errors.map((e, i) => (
+                    <li key={i} className="text-red-700">{e}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {loading ? (
-        // skeleton for KPIs
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[...Array(4)].map((_, i) => (
             <div
@@ -298,10 +437,7 @@ function downloadTopProductsCSV() {
                     </thead>
                     <tbody className="tabular-nums">
                       {topProducts.map((p, idx) => (
-                        <tr
-                          key={p.name}
-                          className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
-                        >
+                        <tr key={p.name} className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}>
                           <td className="py-2 px-2">{p.name}</td>
                           <td className="py-2 px-2 text-right">{p.qty}</td>
                           <td className="py-2 px-2 text-right font-mono">{money(p.revenue)}</td>
@@ -331,10 +467,7 @@ function downloadTopProductsCSV() {
                     </thead>
                     <tbody className="tabular-nums">
                       {lowStock.map((p, idx) => (
-                        <tr
-                          key={p.id}
-                          className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
-                        >
+                        <tr key={p.id} className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}>
                           <td className="py-2 px-2">{p.name}</td>
                           <td className="py-2 px-2 text-right">{p.stock}</td>
                         </tr>
@@ -352,10 +485,7 @@ function downloadTopProductsCSV() {
               ) : (
                 <ul className="space-y-2 text-sm">
                   {abandoned.map((u) => (
-                    <li
-                      key={u.id}
-                      className="border-2 border-black rounded-lg p-3 bg-white hover:bg-white/80"
-                    >
+                    <li key={u.id} className="border-2 border-black rounded-lg p-3 bg.white hover:bg-white/80">
                       <div className="text-neutral-600 text-xs">User</div>
                       <div className="font-medium">{u.id}</div>
                       <div className="mt-1">
@@ -363,8 +493,7 @@ function downloadTopProductsCSV() {
                         {(u.cart?.items || []).map((i) => `${i.name} x${i.qty}`).join(", ")}
                       </div>
                       <div className="text-neutral-600 text-xs mt-1">
-                        Updated:{" "}
-                        {u.cart?.updatedAt?.toDate ? u.cart.updatedAt.toDate().toLocaleString() : "—"}
+                        Updated: {u.cart?.updatedAt?.toDate ? u.cart.updatedAt.toDate().toLocaleString() : "—"}
                       </div>
                     </li>
                   ))}
@@ -388,14 +517,14 @@ function downloadTopProductsCSV() {
                     </thead>
                     <tbody className="tabular-nums">
                       {orders.slice(0, 10).map((o, idx) => {
-                        const total = Number(o.total) || Number(o.subtotal || 0) + Number(o.tax || 0);
+                        const sub = toCents(o.subtotal);
+                        const tax = toCents(o.tax);
+                        const total = toCents(o.total ?? (sub + tax));
+                        const d = toDateFlexible(o.createdAt || o.created_at || o.date || o.createdOn);
                         return (
-                          <tr
-                            key={o.id}
-                            className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
-                          >
+                          <tr key={o.id} className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}>
                             <td className="py-2 px-2">{o.id}</td>
-                            <td className="py-2 px-2">{fmtDate(o.createdAt)}</td>
+                            <td className="py-2 px-2">{d ? d.toLocaleString() : ""}</td>
                             <td className="py-2 px-2 text-right font-mono">{money(total)}</td>
                           </tr>
                         );
@@ -413,10 +542,7 @@ function downloadTopProductsCSV() {
               ) : (
                 <ul className="space-y-3 text-sm">
                   {feedback.map((f) => (
-                    <li
-                      key={f.id}
-                      className="border-2 border-black rounded-lg p-3 bg-white hover:bg-white/80"
-                    >
+                    <li key={f.id} className="border-2 border-black rounded-lg p-3 bg-white hover:bg-white/80">
                       <div className="flex justify-between">
                         <div>Rating: {f.rating ?? "—"}/5</div>
                         <div className="text-neutral-600">
@@ -447,10 +573,7 @@ function downloadTopProductsCSV() {
                     </thead>
                     <tbody className="tabular-nums">
                       {paymentMix.map((r, idx) => (
-                        <tr
-                          key={r.method}
-                          className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}
-                        >
+                        <tr key={r.method} className={`border-b border-black/20 ${zebra[idx % 2]} hover:bg-white`}>
                           <td className="py-2 px-2">{r.method}</td>
                           <td className="py-2 px-2 text-right">{r.orders}</td>
                           <td className="py-2 px-2 text-right font-mono">{money(r.revenue)}</td>
@@ -473,9 +596,7 @@ function KPI({ label, value, cardBg }) {
   return (
     <div className={`rounded-2xl border-2 border-black ${cardBg} p-4 shadow-[0_3px_0_#000]`}>
       <div className="text-xs text-neutral-700 font-semibold">{label}</div>
-      <div className="text-3xl font-extrabold mt-1 font-mono tabular-nums tracking-tight">
-        {value}
-      </div>
+      <div className="text-3xl font-extrabold mt-1 font-mono tabular-nums tracking-tight">{value}</div>
     </div>
   );
 }
@@ -483,9 +604,7 @@ function KPI({ label, value, cardBg }) {
 function Card({ title, children, cardBg, cardHdr }) {
   return (
     <div className={`rounded-2xl border-2 border-black ${cardBg} shadow-[0_3px_0_#000]`}>
-      <div className={`text-base font-semibold px-4 py-3 border-b-2 border-black ${cardHdr}`}>
-        {title}
-      </div>
+      <div className={`text-base font-semibold px-4 py-3 border-b-2 border-black ${cardHdr}`}>{title}</div>
       <div className="p-4">{children}</div>
     </div>
   );
