@@ -311,7 +311,7 @@ const zebra = ["", "bg-white"];
       </div>
 
       {/* toolbar */}
-      <div className={`flex flex-wrap items-center gap-3 mb-6 rounded-xl border-2 border-black ${cardBg} px-3 py-3 shadow-[0_2px_0_#000]`}>
+      <div className={`flex flex-wrap items-center gap-3 mb-6 rounded-2xl border-2 border-black ${cardBg} px-3 py-3 shadow-[0_4px_0_#000] transition-[transform,box-shadow]`}>
         <label htmlFor="period" className="text-sm font-medium">Show last</label>
         <select
           id="period"
@@ -330,7 +330,7 @@ const zebra = ["", "bg-white"];
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={downloadCSV}
-            className="px-3 py-2 bg-white border-2 border-black rounded text-sm font-semibold shadow-[0_2px_0_#000] active:translate-y-[1px]"
+            className="px-3 py-2 bg-white border-2 border-black rounded text-sm font-semibold shadow-[0_2px_0_#000] hover:-translate-y-[1px] transition-all active:translate-y-[1px]"
           >
             Export Orders CSV
           </button>
@@ -594,7 +594,7 @@ const zebra = ["", "bg-white"];
 
 function KPI({ label, value, cardBg }) {
   return (
-    <div className={`rounded-2xl border-2 border-black ${cardBg} p-4 shadow-[0_3px_0_#000]`}>
+    <div className={`rounded-2xl border-2 border-black ${cardBg} p-4 shadow-[0_4px_0_#000] hover:-translate-y-[1px] transition-all`}>
       <div className="text-xs text-neutral-700 font-semibold">{label}</div>
       <div className="text-3xl font-extrabold mt-1 font-mono tabular-nums tracking-tight">{value}</div>
     </div>
@@ -603,7 +603,7 @@ function KPI({ label, value, cardBg }) {
 
 function Card({ title, children, cardBg, cardHdr }) {
   return (
-    <div className={`rounded-2xl border-2 border-black ${cardBg} shadow-[0_3px_0_#000]`}>
+    <div className={`rounded-2xl border-2 border-black ${cardBg} shadow-[0_4px_0_#000] hover:-translate-y-[1px] transition-all`}>
       <div className={`text-base font-semibold px-4 py-3 border-b-2 border-black ${cardHdr}`}>{title}</div>
       <div className="p-4">{children}</div>
     </div>
