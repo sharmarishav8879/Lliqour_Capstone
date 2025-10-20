@@ -10,9 +10,9 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline } from "react-icons/md";
 import Link from "next/link";
 import { getAllProducts } from "@/lib/products";
-import { addProducts } from "@/lib/modifyProducts";
-import AddProduct from "../../adminComponents/addProducts";
+import AddProducts from "../../adminComponents/addProducts";
 import { deleteProduct } from "../../adminComponents/deleteProducts";
+import UpdateProducts from "../../adminComponents/updateProducts";
 
 export default function Profile() {
   const { user, loading: authLoading, firebaseSignOut } = useUserAuth();
@@ -27,18 +27,6 @@ export default function Profile() {
   const [searchTerm, setSearchTerm] = useState("");
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
   const [showProductForm, setShowProductForm] = useState(false);
-
-  const [productData, setProductData] = useState({
-    name: "",
-    price: "",
-    category: "",
-    abv: "",
-    size: "",
-    origin: "",
-    description: "",
-    discount: "",
-    imageUrl: "",
-  });
 
   const handleSignOut = async () => {
     try {
@@ -73,7 +61,22 @@ export default function Profile() {
     const fetchProducts = async () => {
       try {
         const products = await getAllProducts();
-        setItems(Array.isArray(products) ? products : []);
+        const normalized = (Array.isArray(products) ? products : []).map(
+          (p) => ({
+            id: p.docId || p.id,
+            slug: p.slug || p.docId,
+            name: p.name || "Unnamed Product",
+            category: p.category || "Uncategorized",
+            price: Number(p.price) || 0,
+            abv: p.abv || "",
+            size: p.size || "",
+            origin: p.origin || "",
+            description: p.description || "",
+            discount: Number(p.discount) || 0,
+            image: p.image || p.imageUrl || "/placeholderProduct.jpg",
+          })
+        );
+        setItems(normalized);
       } catch (error) {
         console.error("Error fetching products:", error);
         setItems([]);
@@ -86,15 +89,13 @@ export default function Profile() {
     fetchProducts();
   }, [user, authLoading, router]);
 
-  const filteredItems = items.filter((product) => {
-    const matchesCategory = activeCategory
-      ? product.category === activeCategory
-      : true;
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredItems = items.filter(
+    (product) =>
+      product &&
+      typeof product.name === "string" &&
+      (activeCategory ? product.category === activeCategory : true) &&
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   function InfoCard({ title, date, subtitleLabel = "Placed on" }) {
     return (
@@ -107,19 +108,23 @@ export default function Profile() {
     );
   }
 
-  function ProductCard({ product, className = "", onProductDeleted }) {
+  function ProductCard({
+    product,
+    className = "",
+    onProductDeleted,
+    onProductUpdated,
+  }) {
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+
     const handleDeleteClick = async (e) => {
       e.preventDefault();
       const confirmed = confirm(
         `Are you sure you want to delete "${product.name}"?`
       );
       if (!confirmed) return;
-
       try {
         await deleteProduct(product.id);
-
         if (onProductDeleted) onProductDeleted(product.id);
-
         alert(`"${product.name}" deleted successfully!`);
       } catch (err) {
         alert(`Failed to delete product: ${err.message}`);
@@ -133,7 +138,7 @@ export default function Profile() {
           className="block bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
         >
           <img
-            src={product.imageUrl || product.image}
+            src={product.image}
             alt={product.name}
             className="w-full h-56 object-cover"
           />
@@ -145,14 +150,17 @@ export default function Profile() {
               {product.origin || ""}
             </div>
             <div className="mt-2 font-extrabold text-gray-900">
-              ${product.price.toFixed(2)}
+              ${Number(product.price).toFixed(2)}
             </div>
           </div>
         </Link>
 
         <div className="absolute bottom-4 right-4 flex space-x-2">
           <button
-            onClick={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.preventDefault();
+              setShowUpdateModal(true);
+            }}
             className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-gray-200 text-gray-800"
           >
             <MdModeEditOutline size={20} />
@@ -165,68 +173,21 @@ export default function Profile() {
             <FaRegTrashAlt size={18} />
           </button>
         </div>
+
+        {showUpdateModal && (
+          <UpdateProducts
+            product={product}
+            onClose={() => setShowUpdateModal(false)}
+            onUpdated={(newProduct) => {
+              setItems((prev) =>
+                prev.map((p) => (p.id === newProduct.id ? newProduct : p))
+              );
+            }}
+          />
+        )}
       </div>
     );
   }
-
-  const handleAddProductSubmit = async (e) => {
-    e.preventDefault();
-
-    const { name, price, category, abv, size, origin } = productData;
-
-    if (!name.trim()) return alert("Product name is required.");
-    if (!category.trim()) return alert("Category is required.");
-    if (!size.trim()) return alert("Size is required.");
-    if (!origin.trim()) return alert("Origin is required.");
-
-    const priceNum = parseFloat(price);
-    const abvNum = parseFloat(abv);
-
-    if (isNaN(priceNum) || priceNum <= 0)
-      return alert("Price must be a positive number.");
-    if (isNaN(abvNum) || abvNum < 0)
-      return alert("ABV must be a valid number.");
-
-    const slug = name.toLowerCase().replace(/\s+/g, "-");
-    const id = slug;
-
-    const newProduct = {
-      ...productData,
-      price: priceNum,
-      discount: parseFloat(productData.discount) || 0,
-      slug,
-      id,
-      imageUrl: productData.imageUrl || "/placeholderProduct.jpg",
-    };
-
-    try {
-      await addProducts(newProduct);
-      setProductData({
-        name: "",
-        price: "",
-        category: "",
-        abv: "",
-        size: "",
-        origin: "",
-        description: "",
-        discount: "",
-        imageUrl: "",
-      });
-      setShowProductForm(false);
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add product. Please try again.");
-    }
-  };
-
-  const handleDeleteClick = async () => {
-    try {
-      await deleteProduct(product.id);
-    } catch (err) {
-      alert(`Failed to delete product: ${err.message}`);
-    }
-  };
 
   return (
     <main className="bg-white min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif">
@@ -265,27 +226,15 @@ export default function Profile() {
               <h2 className="text-2xl font-semibold text-black border-b pb-2">
                 Current Orders
               </h2>
-              <InfoCard
-                title="Order #12345"
-                date="2025-09-01"
-                subtitleLabel="Placed on"
-              />
-              <InfoCard
-                title="Order #12346"
-                date="2025-09-05"
-                subtitleLabel="Placed on"
-              />
+              <InfoCard title="Order #12345" date="2025-09-01" />
+              <InfoCard title="Order #12346" date="2025-09-05" />
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-2xl font-semibold text-black border-b pb-2">
                 Order History
               </h2>
-              <InfoCard
-                title="Order #12344"
-                date="2025-08-20"
-                subtitleLabel="Placed on"
-              />
+              <InfoCard title="Order #12344" date="2025-08-20" />
               <InfoCard
                 title="Status: Delivered"
                 date="2025-08-25"
@@ -321,37 +270,19 @@ export default function Profile() {
               <div className="flex items-center gap-1.5">
                 <div className="relative">
                   <button
-                    onClick={() => {
-                      setShowProductForm((prev) => !prev);
-                      setShowSearch(false);
-                      setShowCategoryDropdown(false);
-                    }}
+                    onClick={() => setShowProductForm((prev) => !prev)}
                     className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
                   >
                     <FiPlus size={20} className="text-black" />
                   </button>
-
                   {showProductForm && (
-                    <div className="absolute right-0 w-72 bg-white text-black font-serif rounded-2xl shadow-xl z-20 p-4 max-h-[80vh] overflow-y-auto flex flex-col gap-3">
-                      <h2 className="text-lg font-bold text-center mb-3">
-                        Add Product
-                      </h2>
-                      <form
-                        className="flex flex-col gap-2 w-full"
-                        onSubmit={handleAddProductSubmit}
-                      >
-                        <AddProduct
-                          productData={productData}
-                          setProductData={setProductData}
-                        />
-                        <button
-                          type="submit"
-                          className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg transition-colors"
-                        >
-                          Add Product
-                        </button>
-                      </form>
-                    </div>
+                    <AddProducts
+                      onClose={() => setShowProductForm(false)}
+                      onAdded={(newProduct) => {
+                        setItems((prev) => [...prev, newProduct]);
+                        setShowProductForm(false);
+                      }}
+                    />
                   )}
                 </div>
 
@@ -428,19 +359,20 @@ export default function Profile() {
                 </div>
               </div>
             </div>
+
             <div className="w-full max-w-6xl flex flex-col gap-6 mt-4">
               <div className="flex gap-6 overflow-x-auto py-2 scrollbar-hide">
                 {filteredItems.length > 0 ? (
-                  filteredItems.map((product) => (
+                  filteredItems.map((product, index) => (
                     <ProductCard
-                      key={product.id}
+                      key={`${product.id}-${index}`}
                       product={product}
                       className="min-w-[220px]"
-                      onProductDeleted={(deletedId) => {
+                      onProductDeleted={(deletedId) =>
                         setItems((prev) =>
                           prev.filter((p) => p.id !== deletedId)
-                        );
-                      }}
+                        )
+                      }
                     />
                   ))
                 ) : (
