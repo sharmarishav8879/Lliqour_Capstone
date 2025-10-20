@@ -18,7 +18,15 @@ import { auth, db } from "@/app/auth/_util/firebase";
 
 function money(cents = 0) {
   const v = Number(cents || 0) / 100;
-  return `$${v.toFixed(2)}`;
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency: "CAD" }).format(v);
+  } catch {
+    return `$${v.toFixed(2)}`;
+  }
+}
+function fmtDate(ts) {
+  const d = ts?.toDate ? ts.toDate() : ts instanceof Date ? ts : null;
+  return d ? d.toLocaleString() : "";
 }
 
 export default function AdminInsights() {
@@ -148,13 +156,14 @@ export default function AdminInsights() {
     return [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
   }, [orders]);
 
+  // --- CSV exports
   function downloadCSV() {
     // simple revenue export (orders within period)
     const rows = [
       ["Order ID", "Date", "Method", "Items", "Subtotal", "Tax", "Total"],
       ...orders.map((o) => [
         o.id,
-        o.createdAt?.toDate ? o.createdAt.toDate().toISOString() : "",
+        fmtDate(o.createdAt),
         o.method || o.paymentMethod || "",
         (o.items || []).map((i) => `${i.name} x${i.qty}`).join("; "),
         money(o.subtotal || 0),
@@ -169,6 +178,22 @@ export default function AdminInsights() {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `insights-${period}d.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function downloadTopProductsCSV() {
+    const rows = [
+      ["Product", "Quantity", "Revenue"],
+      ...topProducts.map((p) => [p.name, p.qty, money(p.revenue)]),
+    ];
+    const csv = rows
+      .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `insights-top-products-${period}d.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
   }
@@ -192,19 +217,35 @@ export default function AdminInsights() {
           <option value={90}>90 days</option>
           <option value={180}>180 days</option>
           <option value={365}>365 days</option>
-
         </select>
 
         <button
           onClick={downloadCSV}
           className="ml-auto px-3 py-2 bg-white text-black rounded"
         >
-          Export CSV
+          Export Orders CSV
+        </button>
+
+        <button
+          onClick={downloadTopProductsCSV}
+          className="px-3 py-2 border border-gray-700 rounded"
+        >
+          Export Top Products CSV
         </button>
       </div>
 
       {loading ? (
-        <div className="opacity-70">Loading…</div>
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-gray-800 p-4 bg-[#121212] animate-pulse"
+            >
+              <div className="h-4 w-24 bg-gray-700 rounded mb-3" />
+              <div className="h-6 w-32 bg-gray-700 rounded" />
+            </div>
+          ))}
+        </div>
       ) : (
         <>
           {/* KPI cards */}
@@ -296,6 +337,36 @@ export default function AdminInsights() {
                     </li>
                   ))}
                 </ul>
+              )}
+            </Card>
+
+            <Card title="Recent Orders (10)">
+              {orders.length === 0 ? (
+                <Empty />
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className="opacity-70">
+                    <tr>
+                      <th className="text-left py-2">Order</th>
+                      <th className="text-left py-2">Date</th>
+                      <th className="text-right py-2">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.slice(0, 10).map((o) => {
+                      const total =
+                        Number(o.total) ||
+                        Number(o.subtotal || 0) + Number(o.tax || 0);
+                      return (
+                        <tr key={o.id} className="border-t border-gray-800">
+                          <td className="py-2">{o.id}</td>
+                          <td className="py-2">{fmtDate(o.createdAt)}</td>
+                          <td className="py-2 text-right">{money(total)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               )}
             </Card>
 
