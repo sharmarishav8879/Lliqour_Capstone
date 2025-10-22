@@ -241,7 +241,7 @@ export default function ContactUs() {
             placeholder="Your Name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black px-5"
           />
 
           <input
@@ -251,7 +251,7 @@ export default function ContactUs() {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black px-5"
           />
 
           <textarea
@@ -261,7 +261,7 @@ export default function ContactUs() {
             onChange={(e) =>
               setFormData({ ...formData, message: e.target.value })
             }
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black resize-none px-5"
+            className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black resize-none px-5"
           />
 
           <button

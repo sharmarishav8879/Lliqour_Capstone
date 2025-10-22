@@ -35,7 +35,7 @@ function OfferProductCard({ product }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+      className="bg-gray-100 border border-gray-300 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
     >
       <Image
         src={product.image}
@@ -141,7 +141,7 @@ export default function Home() {
             src="/beerHeader.png"
             alt="Beer Header"
             fill
-            className="object-cover"
+            className={`object-cover`}
             priority
           />
         </div>

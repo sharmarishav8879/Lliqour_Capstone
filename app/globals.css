@@ -12,11 +12,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #ededed;
-  }
+[data-theme="dark"] {
+  --background: #171717;
+  --foreground: #d5660c;
 }
 
 body {
@@ -27,5 +25,25 @@ body {
 
 .shadow-top {
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 -2px 4px -2px rgba(0, 0, 0, 0.1);
+    0 -2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Global override for Tailwind bg and text utilities */
+.bg-white {
+  background-color: var(--background);
+}
+
+.text-black,
+.text-gray-900,
+.text-gray-800 {
+  color: var(--foreground);
+}
+
+/* Ensure body and root fill the viewport */
+body,
+#root {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
 }

@@ -65,7 +65,7 @@ export default function Login() {
         >
           <input
             onChange={(e) => setEmail(e.target.value)}
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            className="p-3 border bg-gray-50 border-gray-400 rounded-4xl text-black px-5"
             type="email"
             placeholder="Email"
             value={email}
@@ -74,7 +74,7 @@ export default function Login() {
           <div className="relative">
             <input
               onChange={(e) => setPassword(e.target.value)}
-              className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5 w-full pr-12"
+              className="p-3 border bg-gray-50 border-gray-400 rounded-4xl text-black px-5 w-full pr-12"
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
