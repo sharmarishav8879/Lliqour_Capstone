@@ -5,6 +5,7 @@ import { AuthContextProvider } from "./auth/_util/auth-context";
 import { CartProvider } from "./context/CartProvider";
 import MiniCart from "../components/MiniCart";
 import Footer from "../components/Footer"; // 👈 import footer
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,15 +25,19 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <CartProvider>
-          <AuthContextProvider>
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-            <MiniCart />
-          </AuthContextProvider>
-        </CartProvider>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ThemeToggle>
+          <CartProvider>
+            <AuthContextProvider>
+              <Navbar />
+              <main>{children}</main>
+              <Footer />
+              <MiniCart />
+            </AuthContextProvider>
+          </CartProvider>
+        </ThemeToggle>
       </body>
     </html>
   );
