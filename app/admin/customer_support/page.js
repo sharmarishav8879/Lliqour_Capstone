@@ -11,6 +11,7 @@ import {
 import { db } from "@/app/auth/_util/firebase";
 import Protected from "@/components/protected";
 import ViewReplies from "@/adminComponents/viewReplies";
+import toast from "react-hot-toast";
 
 export default function CustomerSupport() {
   const [complaints, setComplaints] = useState([]);
@@ -80,16 +81,16 @@ export default function CustomerSupport() {
   // Update ticket status
   const handleTicketStatusUpdate = async (ticketId, newStatus) => {
     if (!ticketId) {
-      alert("Invalid ticket ID");
+      toast.error("Invalid ticket ID");
       return;
     }
 
     if (newStatus === "Resolved") {
-      alert("Ticket has been resolved");
+      toast.success("Ticket has been resolved");
     } else if (newStatus === "Pending") {
-      alert("Ticket is marked as pending");
+      toast.success("Ticket is marked as pending");
     } else if (newStatus === "Unresolved") {
-      alert("Ticket is marked as unresolved");
+      toast.success("Ticket is marked as unresolved");
     }
 
     try {
