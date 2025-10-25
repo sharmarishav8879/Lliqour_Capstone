@@ -11,6 +11,7 @@ import { auth, db } from "@/app/auth/_util/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useTheme } from "./ThemeToggle";
+import MailboxDropdown from "./MailboxDropdown";
 
 export default function Navbar() {
   const [filter, setFilter] = useState("");
@@ -262,6 +263,7 @@ export default function Navbar() {
           </Link>
 
           <CartButton />
+          {!role || (role === "guest" && <MailboxDropdown />)}
           <button
             onClick={toggleMode}
             aria-label="Toggle Theme"
