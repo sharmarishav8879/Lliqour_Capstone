@@ -6,6 +6,7 @@ import { CartProvider } from "./context/CartProvider";
 import MiniCart from "../components/MiniCart";
 import Footer from "../components/Footer"; // 👈 import footer
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }) {
           <CartProvider>
             <AuthContextProvider>
               <Navbar />
+              <Toaster />
               <main>{children}</main>
               <Footer />
               <MiniCart />

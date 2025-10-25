@@ -200,6 +200,9 @@ export default function Navbar() {
                 <li>
                   <Link href="/admin/customer_support">Customer Support</Link>
                 </li>
+                <li>
+                  <Link href="/admin/announcements">Announcements</Link>
+                </li>
               </ul>
             ) : (
               <>

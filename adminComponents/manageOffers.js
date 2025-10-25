@@ -1,6 +1,7 @@
 import { getAllProducts } from "@/lib/products";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function ManageOffers() {
   const [manageOffers, setManageOffers] = useState(false);
@@ -27,7 +28,7 @@ export default function ManageOffers() {
 
   const handleAddOffers = (p) => {
     if (offerProducts.find((product) => p.docId === product.docId))
-      return alert("Product already added!");
+      return toast.success("Product already added!");
 
     if (offerProducts.length >= 3) {
       alert("You can only add up to 3 offers at a time.");
@@ -41,7 +42,6 @@ export default function ManageOffers() {
 
     localStorage.setItem("offerProducts", JSON.stringify(updatedOffersList));
 
-    
     setAlertMessage(`${p.name} added to offers!`);
   };
   return (
