@@ -1,8 +1,16 @@
 "use client";
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { useState } from "react";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { db } from "../auth/_util/firebase";
 import { useUserAuth } from "../auth/_util/auth-context";
+import NotificationBell from "@/components/notificationBell";
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -18,6 +26,7 @@ export default function ContactUs() {
   const [ticketResponse, setTicketResponse] = useState([]);
   const [showTicketResponse, setShowTicketResponse] = useState(false);
   const [showTickets, setShowTickets] = useState(false);
+  const [hasNewTicket, setHasNewTicket] = useState(false);
 
   // Prompt: how to create a toggle function in react that toggles the state of a variable between an index value and an empty string
   const toggleAnswer = (idx) => {
@@ -27,6 +36,39 @@ export default function ContactUs() {
       setAnswer(idx);
     }
   };
+
+  // Notification bell for new ticket responses
+
+  useEffect(() => {
+    if (!user) {
+      setHasNewTicket(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, "replies"),
+      where("userEmail", "==", user.email)
+    );
+
+    let initialLoad = true;
+    let previousCount = [];
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const currentCount = snapshot.docs.map((doc) => doc.id);
+      if (!initialLoad) {
+        const newReplies = currentCount.filter(
+          (id) => !previousCount.includes(id)
+        );
+        if (newReplies.length > 0) {
+          setHasNewTicket(true);
+        }
+      }
+      previousCount = currentCount;
+      initialLoad = false;
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,6 +81,7 @@ export default function ContactUs() {
         name: formData.name,
         email: formData.email,
         message: formData.message,
+        status: "Pending",
       });
       alert("Problem reported successfully!");
 
@@ -87,6 +130,7 @@ export default function ContactUs() {
         ...doc.data(),
       }));
       setTicketResponse(responses);
+      setHasNewTicket(false);
     } catch (error) {
       alert(`Error fetching ticket responses: ${error.message}`);
     }
@@ -96,6 +140,14 @@ export default function ContactUs() {
     <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center">
       {user && (
         <div>
+          <div className="fixed top-9  right-45 z-50">
+            <NotificationBell
+              hasNewTicketProp={hasNewTicket}
+              onClickProp={() => {
+                setHasNewTicket(false);
+              }}
+            />
+          </div>
           <div className="w-full absolute top-28 right-3 max-w-md bg-white border border-gray-200 rounded-2xl shadow-xl p-6 flex flex-col items-center gap-4 transition-all duration-300 hover:shadow-2xl">
             <p className="text-lg text-gray-700 mb-2">
               View previous tickets of{" "}
@@ -189,7 +241,7 @@ export default function ContactUs() {
             placeholder="Your Name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black px-5"
           />
 
           <input
@@ -199,7 +251,7 @@ export default function ContactUs() {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black px-5"
           />
 
           <textarea
@@ -209,12 +261,12 @@ export default function ContactUs() {
             onChange={(e) =>
               setFormData({ ...formData, message: e.target.value })
             }
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black resize-none px-5"
+            className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black resize-none px-5"
           />
 
           <button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-4xl"
+            className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
           >
             Submit
           </button>

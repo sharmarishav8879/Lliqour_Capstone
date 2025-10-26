@@ -35,7 +35,7 @@ function OfferProductCard({ product }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+      className="bg-gray-100 border border-gray-300 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
     >
       <Image
         src={product.image}
@@ -88,6 +88,48 @@ export default function Home() {
     const storedOfferProducts = localStorage.getItem("offerProducts");
     if (storedOfferProducts) {
       setOfferProducts(JSON.parse(storedOfferProducts));
+    } else {
+      setOfferProducts([
+        {
+          id: 1,
+          name: "Macallan 12 Year",
+          slug: "macallan-12",
+          description:
+            "A rich and smooth single malt whisky with notes of dried fruit and spice.",
+
+          size: "750ml",
+          image: "/placeholderProduct.jpg",
+          abv: "40%",
+          origin: "Scotland",
+          price: 99.99,
+        },
+        {
+          id: 2,
+          name: "Grey Goose Vodka",
+          slug: "grey-goose",
+          description:
+            "A smooth and creamy vodka with notes of citrus and tropical fruits.",
+
+          size: "750ml",
+          image: "/placeholderProduct.jpg",
+          abv: "40%",
+          origin: "United States",
+          price: 49.99,
+        },
+        {
+          id: 3,
+          name: "Chateau Margaux 2015",
+          slug: "chateau-margaux-2015",
+          description:
+            "A full-bodied red wine with notes of blackberry, plum, and oak.",
+
+          size: "750ml",
+          image: "/placeholderProduct.jpg",
+          abv: "40%",
+          origin: "France",
+          price: 79.99,
+        },
+      ]);
     }
   }, []);
 
@@ -99,7 +141,7 @@ export default function Home() {
             src="/beerHeader.png"
             alt="Beer Header"
             fill
-            className="object-cover"
+            className={`object-cover`}
             priority
           />
         </div>

@@ -95,7 +95,7 @@ export default function Home() {
             <p className="mt-2 text-xl md:text-2xl text-yellow-100 font-semibold">
               Limited Time Only!
             </p>
-            <div className="bg-white text-black font-bold py-2 px-4 rounded-full mt-4 hover:bg-gray-300 cursor-pointer">
+            <div className="bg-gray-50 text-black font-bold py-2 px-4 rounded-full mt-4 hover:bg-gray-300 cursor-pointer">
               <ManageOffers />
             </div>
           </div>
@@ -104,7 +104,7 @@ export default function Home() {
             {offerProducts.map((product) => (
               <div
                 key={product.docId}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
+                className="bg-gray-100 rounded-lg shadow-md overflow-hidden"
               >
                 <Image
                   src={product.image}

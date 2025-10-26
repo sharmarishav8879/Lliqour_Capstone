@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import { db } from "@/app/auth/_util/firebase";
 import Protected from "@/components/protected";
 import ViewReplies from "@/adminComponents/viewReplies";
+import toast from "react-hot-toast";
 
 export default function CustomerSupport() {
   const [complaints, setComplaints] = useState([]);
@@ -12,6 +19,7 @@ export default function CustomerSupport() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [reply, setReply] = useState("");
   const [showReplies, setShowReplies] = useState(false);
+  const [ticketStatus, setTicketStatus] = useState("");
 
   useEffect(() => {
     const fetchComplaints = async () => {
@@ -70,6 +78,38 @@ export default function CustomerSupport() {
     }
   };
 
+  // Update ticket status
+  const handleTicketStatusUpdate = async (ticketId, newStatus) => {
+    if (!ticketId) {
+      toast.error("Invalid ticket ID");
+      return;
+    }
+
+    if (newStatus === "Resolved") {
+      toast.success("Ticket has been resolved");
+    } else if (newStatus === "Pending") {
+      toast.success("Ticket is marked as pending");
+    } else if (newStatus === "Unresolved") {
+      toast.success("Ticket is marked as unresolved");
+    }
+
+    try {
+      const ticketRef = doc(db, "contactMessages", ticketId);
+      await updateDoc(ticketRef, {
+        status: newStatus,
+      });
+      setComplaints((olderComplaints) =>
+        olderComplaints.map((complaint) =>
+          complaint.id === ticketId
+            ? { ...complaint, status: newStatus }
+            : complaint
+        )
+      );
+    } catch (error) {
+      alert(`Error updating ticket status: ${error.message}`);
+    }
+  };
+
   return (
     <Protected requiredRole="admin">
       <div className="w-full min-h-screen mt-25 p-6 text-black bg-white font-serif">
@@ -112,6 +152,19 @@ export default function CustomerSupport() {
                 </p>
                 <p className="text-sm text-white mb-2">{complaint.email}</p>
                 <p className="text-white">{complaint.message}</p>
+                <div className="mt-4 ">
+                  <span
+                    className={`mt-4 font-semibold  ${
+                      complaint.status === "Resolved"
+                        ? "text-green-600"
+                        : complaint.status === "Pending"
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    Status: {complaint.status || "Unresolved"}
+                  </span>
+                </div>
               </div>
             ))
           )}
@@ -147,6 +200,30 @@ export default function CustomerSupport() {
                 >
                   Close
                 </button>
+                <div className="flex absolute top-6  items-center mt-4">
+                  <p className="mr-2">Status:</p>
+                  <button
+                    value={ticketStatus}
+                    className="rounded-full h-4 w-4 bg-green-600"
+                    onClick={() =>
+                      handleTicketStatusUpdate(selectedTicket.id, "Resolved")
+                    }
+                  ></button>
+                  <button
+                    value={ticketStatus}
+                    className="rounded-full h-4 w-4 bg-yellow-600 mx-2"
+                    onClick={() =>
+                      handleTicketStatusUpdate(selectedTicket.id, "Pending")
+                    }
+                  ></button>
+                  <button
+                    value={ticketStatus}
+                    className="rounded-full h-4 w-4 bg-red-600"
+                    onClick={() =>
+                      handleTicketStatusUpdate(selectedTicket.id, "Unresolved")
+                    }
+                  ></button>
+                </div>
               </div>
             </div>
           </div>

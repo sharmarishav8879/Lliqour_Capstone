@@ -10,6 +10,8 @@ import CartButton from "./CartButton";
 import { auth, db } from "@/app/auth/_util/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { useTheme } from "./ThemeToggle";
+import MailboxDropdown from "./MailboxDropdown";
 
 export default function Navbar() {
   const [filter, setFilter] = useState("");
@@ -18,6 +20,7 @@ export default function Navbar() {
   const [filterProducts, setFilterProducts] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
   const [role, setRole] = useState("guest");
+  const { theme, toggleMode } = useTheme();
 
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -86,7 +89,10 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-white py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50">
+    <nav
+      className={`py-6 px-6 fixed top-0 left-0 w-full shadow-md z-50 
+    ${theme === "light" ? "bg-white" : "bg-teal-900 "} `}
+    >
       {filter !== "" && (
         <div
           onClick={(e) => e.stopPropagation()}
@@ -178,7 +184,11 @@ export default function Navbar() {
         </div>
 
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
+          <ul
+            className={`flex space-x-10 text-xl font-serif ${
+              theme === "dark" ? "text-white" : "text-orange-500"
+            }`}
+          >
             {role === "admin" ? (
               <ul className="flex space-x-10 text-orange-500 text-xl font-serif">
                 <li>
@@ -190,6 +200,9 @@ export default function Navbar() {
                 </li>
                 <li>
                   <Link href="/admin/customer_support">Customer Support</Link>
+                </li>
+                <li>
+                  <Link href="/admin/announcements">Announcements</Link>
                 </li>
               </ul>
             ) : (
@@ -250,6 +263,18 @@ export default function Navbar() {
           </Link>
 
           <CartButton />
+          {!role || (role === "guest" && <MailboxDropdown />)}
+          <button
+            onClick={toggleMode}
+            aria-label="Toggle Theme"
+            className={`ml-4 relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 
+    ${theme === "light" ? "bg-gray-300" : "bg-orange-500"}`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 
+      ${theme === "light" ? "translate-x-1" : "translate-x-6"}`}
+            />
+          </button>
         </div>
       </div>
     </nav>
