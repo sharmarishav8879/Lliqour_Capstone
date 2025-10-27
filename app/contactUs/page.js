@@ -23,19 +23,15 @@ export default function ContactUs() {
   const [answer, setAnswer] = useState("");
   const router = useRouter();
   const { user, authLoading } = useUserAuth();
-  // State for admin reply text
+
   const [tickets, setTickets] = useState([]);
   const [replyText, setReplyText] = useState("");
 
-  // useState for storing user data
   const [name, setName] = useState("");
   const [role, setRole] = useState("user");
   const [userId, setUserId] = useState("");
-
-  // useRef is a variable that exists across renders (does not re render page on change)
   const alertShownRef = useRef(false);
 
-  // Admin UID (Change in future to fetch from DB)
   const adminUID = "lQ3AfTMA1zVmI8YATtQQNfsZaGb2";
 
   useEffect(() => {
@@ -50,7 +46,6 @@ export default function ContactUs() {
       alertShownRef.current = false;
     }
 
-    // Fetch user data for everyone
     const fetchUserData = async () => {
       if (!user) return;
 
@@ -64,7 +59,6 @@ export default function ContactUs() {
           setRole(userData.role || "user");
           setUserId(user.uid);
 
-          // Spread operator to keep other form data intact (overwriting name and email)
           setFormData((prevData) => ({
             ...prevData,
             name: userData.name || "",
@@ -92,7 +86,6 @@ export default function ContactUs() {
     setAnswer((prevAnswer) => (prevAnswer === index ? "" : index));
   };
 
-  // Create tickets on form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -240,7 +233,7 @@ export default function ContactUs() {
           </div>
         </div>
       ) : (
-        // Test Admin ticket panel
+        // Prompty: Generate the admin ticket panel UI
         user &&
         role === "admin" && (
           <div className="w-full max-w-6xl flex flex-col items-center gap-6">
