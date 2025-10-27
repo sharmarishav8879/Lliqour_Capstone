@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useUserAuth } from "../auth/_util/auth-context";
 import { db } from "../auth/_util/firebase";
 import { HiOutlineCog, HiOutlineSearch } from "react-icons/hi";
@@ -27,6 +27,8 @@ export default function Profile() {
   const [searchTerm, setSearchTerm] = useState("");
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
   const [showProductForm, setShowProductForm] = useState(false);
+  const [tickets, setTickets] = useState([]);
+
 
   const handleSignOut = async () => {
     try {
@@ -38,56 +40,71 @@ export default function Profile() {
   };
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      router.push("/auth/login");
-      return;
+  if (authLoading) return;
+
+  if (!user) {
+    router.push("/auth/login");
+    return;
+  }
+
+  const fetchUserData = async () => {
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnapshot = await getDoc(userDocRef);
+      if (userDocSnapshot.exists()) {
+        const userData = userDocSnapshot.data();
+        setName(userData.name);
+        setRole(userData.role || "user");
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
     }
+  };
 
-    const fetchUserData = async () => {
-      try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDocSnapshot = await getDoc(userDocRef);
-        if (userDocSnapshot.exists()) {
-          const userData = userDocSnapshot.data();
-          setName(userData.name);
-          setRole(userData.role || "user");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
+  const fetchTickets = async () => {
+    try {
+      const ticketsRef = collection(db, "tickets");
+      const q = query(ticketsRef, where("canView", "array-contains", user.uid));
+      const snapshot = await getDocs(q);
+      setTickets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      setTickets([]);
+    }
+  };
 
-    const fetchProducts = async () => {
-      try {
-        const products = await getAllProducts();
-        const normalized = (Array.isArray(products) ? products : []).map(
-          (p) => ({
-            id: p.docId || p.id,
-            slug: p.slug || p.docId,
-            name: p.name || "Unnamed Product",
-            category: p.category || "Uncategorized",
-            price: Number(p.price) || 0,
-            abv: p.abv || "",
-            size: p.size || "",
-            origin: p.origin || "",
-            description: p.description || "",
-            discount: Number(p.discount) || 0,
-            image: p.image || p.imageUrl || "/placeholderProduct.jpg",
-          })
-        );
-        setItems(normalized);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        setItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProducts = async () => {
+    try {
+      const products = await getAllProducts();
+      const normalized = (Array.isArray(products) ? products : []).map(
+        (p) => ({
+          id: p.docId || p.id,
+          slug: p.slug || p.docId,
+          name: p.name || "Unnamed Product",
+          category: p.category || "Uncategorized",
+          price: Number(p.price) || 0,
+          abv: p.abv || "",
+          size: p.size || "",
+          origin: p.origin || "",
+          description: p.description || "",
+          discount: Number(p.discount) || 0,
+          image: p.image || p.imageUrl || "/placeholderProduct.jpg",
+        })
+      );
+      setItems(normalized);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUserData();
-    fetchProducts();
-  }, [user, authLoading, router]);
+  fetchUserData();
+  fetchTickets();
+  fetchProducts();
+}, [user, authLoading, router]);
+
 
   const filteredItems = items.filter(
     (product) =>
@@ -224,38 +241,26 @@ export default function Profile() {
           <>
             <div className="flex flex-col gap-4 mt-6">
               <h2 className="text-2xl font-semibold text-black border-b pb-2">
-                Current Orders
-              </h2>
-              <InfoCard title="Order #12345" date="2025-09-01" />
-              <InfoCard title="Order #12346" date="2025-09-05" />
-            </div>
-
-            <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-2xl font-semibold text-black border-b pb-2">
-                Order History
-              </h2>
-              <InfoCard title="Order #12344" date="2025-08-20" />
-              <InfoCard
-                title="Status: Delivered"
-                date="2025-08-25"
-                subtitleLabel="Delivered on"
-              />
-            </div>
-
-            <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-2xl font-semibold text-black border-b pb-2">
                 Support Tickets
               </h2>
-              <InfoCard
-                title="Order Issue"
-                date="2025-09-01"
-                subtitleLabel="Opened on"
-              />
-              <InfoCard
-                title="Status: In Progress"
-                date="2025-09-02"
-                subtitleLabel="Last Updated"
-              />
+
+              {tickets.length === 0 && (
+                <p className="text-black">You have no tickets yet.</p>
+              )}
+
+              {tickets.map((ticket) => (
+                <Link key={ticket.id} href={`/ticketsChat/${ticket.id}`}>
+                    <InfoCard
+                      title={ticket.title}
+                      date={
+                        ticket.createdAt?.toDate
+                          ? ticket.createdAt.toDate().toLocaleDateString()
+                          : ""
+                      }
+                      subtitleLabel="Opened on"
+                    />
+                </Link>
+              ))}
             </div>
           </>
         )}

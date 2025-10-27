@@ -199,7 +199,7 @@ export default function Navbar() {
                   <Link href="/admin/insights">Insights</Link>
                 </li>
                 <li>
-                  <Link href="/admin/customer_support">Customer Support</Link>
+                  <Link href="/contactUs">Contact Us</Link>
                 </li>
                 <li>
                   <Link href="/admin/announcements">Announcements</Link>
