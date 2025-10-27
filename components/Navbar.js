@@ -13,6 +13,9 @@ import { onAuthStateChanged } from "firebase/auth";
 import { useTheme } from "./ThemeToggle";
 import MailboxDropdown from "./MailboxDropdown";
 
+// ✅ NEW: admin quick notes (floating, localStorage-based)
+import AdminQuickNotes from "./AdminQuickNotes";
+
 export default function Navbar() {
   const [filter, setFilter] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -277,6 +280,9 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+
+      {/* ✅ Admin-only floating notes button */}
+      {role === "admin" && <AdminQuickNotes />}
     </nav>
   );
 }
