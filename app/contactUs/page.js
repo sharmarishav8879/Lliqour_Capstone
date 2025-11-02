@@ -4,14 +4,9 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUserAuth } from "../auth/_util/auth-context";
-import {
-  doc,
-  getDoc,
-  addDoc,
-  collection,
-  getDocs,
-} from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../auth/_util/firebase";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -31,6 +26,7 @@ export default function ContactUs() {
   const [role, setRole] = useState("user");
   const [userId, setUserId] = useState("");
   const alertShownRef = useRef(false);
+  const { theme } = useTheme();
 
   const adminUID = "lQ3AfTMA1zVmI8YATtQQNfsZaGb2";
 
@@ -125,14 +121,22 @@ export default function ContactUs() {
   };
 
   return (
-    <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center">
+    <main
+      className={`${
+        theme === "light" ? "bg-white" : "bg-gray-900"
+      } min-h-screen pt-30 font-serif flex flex-col items-center`}
+    >
       {user && role === "user" ? (
-        <div className="w-full max-w-md bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-6">
-          <h1 className="text-5xl font-bold text-black text-center mt-10">
-            Contact Us
-          </h1>
+        <div
+          className={`${
+            theme === "light"
+              ? "bg-gray-50 text-black"
+              : "bg-gray-800 text-white"
+          } w-full max-w-md rounded-2xl shadow-lg p-6 flex flex-col gap-6`}
+        >
+          <h1 className="text-5xl font-bold text-center">Contact Us</h1>
 
-          <p className="text-lg text-black text-center">
+          <p className="text-lg text-center">
             Have questions or need assistance? <br /> Fill out the form below.
           </p>
 
@@ -147,7 +151,11 @@ export default function ContactUs() {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black px-5"
+              className={`${
+                theme === "light"
+                  ? "bg-gray-100 text-black border-gray-400"
+                  : "bg-gray-700 text-white border-gray-600"
+              } p-3 border rounded-4xl px-5`}
             />
 
             <input
@@ -157,7 +165,11 @@ export default function ContactUs() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black px-5"
+              className={`${
+                theme === "light"
+                  ? "bg-gray-100 text-black border-gray-400"
+                  : "bg-gray-700 text-white border-gray-600"
+              } p-3 border rounded-4xl px-5`}
             />
 
             <textarea
@@ -167,7 +179,11 @@ export default function ContactUs() {
               onChange={(e) =>
                 setFormData({ ...formData, message: e.target.value })
               }
-              className="p-3 border bg-gray-100 border-gray-400 rounded-4xl text-black resize-none px-5"
+              className={`${
+                theme === "light"
+                  ? "bg-gray-100 text-black border-gray-400"
+                  : "bg-gray-700 text-white border-gray-600"
+              } p-3 border rounded-4xl resize-none px-5`}
             />
 
             <button
@@ -178,7 +194,7 @@ export default function ContactUs() {
             </button>
           </form>
 
-          <div className="w-full max-w-6xl text-black text-center">
+          <div className="w-full max-w-6xl text-center">
             <h2
               onClick={() => setQuestion(!question)}
               className="font-bold mb-6 cursor-pointer"
@@ -188,7 +204,7 @@ export default function ContactUs() {
 
             {question && (
               <div>
-                <ol className="list-disc list-inside text-black text-lg">
+                <ol className="list-disc list-inside text-lg">
                   <li
                     onClick={() => toggleAnswer(1)}
                     className="mb-4 cursor-pointer text-orange-500"
@@ -196,7 +212,11 @@ export default function ContactUs() {
                     What is your return policy?
                   </li>
                   {answer === 1 && (
-                    <p className="mb-4 text-black">
+                    <p
+                      className={`${
+                        theme === "light" ? "text-black" : "text-gray-200"
+                      } mb-4`}
+                    >
                       We accept returns within 30 days of purchase. Please
                       ensure the items are in their original condition.
                     </p>
@@ -209,7 +229,11 @@ export default function ContactUs() {
                     Do you offer international shipping?
                   </li>
                   {answer === 2 && (
-                    <p className="mb-4 text-black">
+                    <p
+                      className={`${
+                        theme === "light" ? "text-black" : "text-gray-200"
+                      } mb-4`}
+                    >
                       Yes, we ship internationally. Shipping fees and delivery
                       times may vary.
                     </p>
@@ -222,7 +246,11 @@ export default function ContactUs() {
                     What payment methods do you accept?
                   </li>
                   {answer === 3 && (
-                    <p className="mb-4 text-black">
+                    <p
+                      className={`${
+                        theme === "light" ? "text-black" : "text-gray-200"
+                      } mb-4`}
+                    >
                       We accept major credit cards, PayPal, and cash on
                       delivery.
                     </p>
@@ -233,11 +261,14 @@ export default function ContactUs() {
           </div>
         </div>
       ) : (
-        // Prompty: Generate the admin ticket panel UI
         user &&
         role === "admin" && (
           <div className="w-full max-w-6xl flex flex-col items-center gap-6">
-            <h1 className="text-5xl font-bold text-black text-center mt-10">
+            <h1
+              className={`${
+                theme === "light" ? "text-black" : "text-white"
+              } text-5xl font-bold text-center mt-10`}
+            >
               Admin Ticket Panel
             </h1>
 
@@ -245,18 +276,24 @@ export default function ContactUs() {
               <Link
                 key={ticket.id}
                 href={`/ticketsChat/${ticket.id}`}
-                className="w-full bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-4 hover:shadow-2xl transition-shadow duration-300"
+                className={`${
+                  theme === "light"
+                    ? "bg-gray-50 text-black"
+                    : "bg-gray-800 text-white"
+                } w-full rounded-2xl shadow-lg p-6 flex flex-col gap-4 hover:shadow-2xl transition-shadow duration-300`}
               >
                 <h2 className="font-bold text-xl">{ticket.title}</h2>
-                <p className="text-black text-sm">
-                  Created by: {ticket.createdBy}
-                </p>
+                <p className="text-sm">Created by: {ticket.createdBy}</p>
 
-                <div className="bg-gray-100 p-3 rounded-lg max-h-64 overflow-y-auto">
+                <div
+                  className={`${
+                    theme === "light" ? "bg-gray-100" : "bg-gray-700"
+                  } p-3 rounded-lg max-h-64 overflow-y-auto`}
+                >
                   {ticket.messages.slice(-3).map((msg, i) => (
                     <div key={i} className="mb-2">
                       <p className="font-bold">{msg.senderName}:</p>
-                      <p className="text-black text-sm">{msg.message}</p>
+                      <p className="text-sm">{msg.message}</p>
                       <p className="text-xs text-gray-500">
                         {new Date(
                           msg.timestamp?.seconds * 1000 || msg.timestamp

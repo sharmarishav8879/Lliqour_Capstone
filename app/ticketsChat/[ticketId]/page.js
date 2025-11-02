@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useUserAuth } from "../../auth/_util/auth-context";
 import { db } from "../../auth/_util/firebase";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function TicketChat() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function TicketChat() {
   const [replyText, setReplyText] = useState("");
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (authLoading) return;
@@ -102,24 +104,49 @@ export default function TicketChat() {
     return <p className="text-black mt-40 text-center">Loading ticket...</p>;
 
   return (
-    <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center px-4">
-      <div className="w-full max-w-3xl bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-6">
-        <h1 className="text-3xl font-bold text-black">{ticket.title}</h1>
-        <p className="text-sm text-gray-500">Status: {ticket.status}</p>
+    <main
+      className={`${
+        theme === "light" ? "bg-white" : "bg-gray-900"
+      } min-h-screen pt-40 font-serif flex flex-col items-center px-4`}
+    >
+      <div
+        className={`${
+          theme === "light" ? "bg-gray-50 text-black" : "bg-gray-800 text-white"
+        } w-full max-w-3xl rounded-2xl shadow-lg p-6 flex flex-col gap-6`}
+      >
+        <h1 className="text-3xl font-bold">{ticket.title}</h1>
+        <p
+          className={`text-sm ${
+            theme === "light" ? "text-gray-500" : "text-gray-400"
+          }`}
+        >
+          Status: {ticket.status}
+        </p>
 
-        <div className="flex flex-col gap-4 mt-6 max-h-[60vh] overflow-y-auto">
+        {/* Messages */}
+        <div className="flex flex-col gap-4 mt-6 max-h-[60vh] overflow-y-auto scrollbar-hide">
           {ticket.messages.map((msg, idx) => (
             <div
               key={idx}
               className={`p-3 rounded-2xl max-w-[70%] ${
                 msg.senderId === user.uid
                   ? "bg-orange-500 text-white self-end"
-                  : "bg-gray-200 text-black self-start"
+                  : theme === "light"
+                  ? "bg-gray-200 text-black self-start"
+                  : "bg-gray-700 text-white self-start"
               }`}
             >
               <p className="font-semibold">{msg.senderName}</p>
               <p className="mt-1">{msg.message}</p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p
+                className={`text-xs mt-1 ${
+                  msg.senderId === user.uid
+                    ? "text-orange-100"
+                    : theme === "light"
+                    ? "text-gray-600"
+                    : "text-gray-300"
+                }`}
+              >
                 {msg.timestamp.toDate
                   ? msg.timestamp.toDate().toLocaleString()
                   : new Date(msg.timestamp).toLocaleString()}
@@ -128,13 +155,18 @@ export default function TicketChat() {
           ))}
         </div>
 
+        {/* Input Field */}
         <div className="flex gap-2 mt-4">
           <input
             type="text"
             placeholder="Type a reply..."
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            className="flex-1 p-3 border border-gray-400 rounded-xl"
+            className={`flex-1 p-3 border rounded-xl outline-none ${
+              theme === "light"
+                ? "border-gray-400 bg-gray-100 text-black"
+                : "border-gray-600 bg-gray-700 text-white"
+            }`}
           />
           <button
             onClick={sendReply}

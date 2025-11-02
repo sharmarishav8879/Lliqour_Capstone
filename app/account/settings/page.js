@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useUserAuth } from "../../auth/_util/auth-context";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../auth/_util/firebase";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function AccountSettings() {
   const router = useRouter();
   const { user } = useUserAuth();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   const handleProfilePicClick = () => {
     alert("Profile picture change not implemented yet.");
@@ -48,27 +50,40 @@ export default function AccountSettings() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-
-      </div>
+      <div className="flex flex-col items-center justify-center min-h-screen"></div>
     );
   }
 
   return (
-    <main className="bg-white min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif">
-      <div className="w-full max-w-md bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-6">
+    <main
+      className={`${
+        theme === "light" ? "bg-white" : "bg-gray-900"
+      } min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif`}
+    >
+      <div
+        className={`${
+          theme === "light" ? "bg-gray-50 text-black" : "bg-gray-800 text-white"
+        } w-full max-w-md rounded-2xl shadow-lg p-6 flex flex-col gap-6`}
+      >
         {user && (
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div
                 onClick={handleProfilePicClick}
-                className="w-20 h-20 bg-gray-300 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition"
-              >
-              </div>
+                className={`${
+                  theme === "light" ? "bg-gray-300" : "bg-gray-700"
+                } w-20 h-20 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition`}
+              ></div>
 
               <div className="flex flex-col">
-                <h1 className="text-3xl font-bold text-black">{name}</h1>
-                <p className="text-sm text-gray-600">{user.email}</p>
+                <h1 className="text-3xl font-bold">{name}</h1>
+                <p
+                  className={`${
+                    theme === "light" ? "text-gray-600" : "text-gray-300"
+                  } text-sm`}
+                >
+                  {user.email}
+                </p>
               </div>
             </div>
 
@@ -84,7 +99,11 @@ export default function AccountSettings() {
         )}
 
         <div className="flex flex-col gap-4 mt-6">
-          <h2 className="text-2xl font-semibold text-black border-b pb-2">
+          <h2
+            className={`${
+              theme === "light" ? "text-black" : "text-white"
+            } text-2xl font-semibold border-b pb-2`}
+          >
             Settings
           </h2>
 
