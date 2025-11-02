@@ -5,11 +5,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { db } from "@/app/auth/_util/firebase";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  Timestamp,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
 function money(cents) {
-  return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" })
-    .format((cents || 0) / 100);
+  return new Intl.NumberFormat("en-CA", {
+    style: "currency",
+    currency: "CAD",
+  }).format((cents || 0) / 100);
 }
 
 export default function ReceiptPage({ params }) {
@@ -19,6 +28,11 @@ export default function ReceiptPage({ params }) {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // NEW: rating state
+  const [stars, setStars] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [thanks, setThanks] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -55,12 +69,33 @@ export default function ReceiptPage({ params }) {
     };
   }, [orderId, uid]);
 
+  async function submitRating() {
+    if (!stars || submitting || thanks) return;
+    try {
+      setSubmitting(true);
+      await addDoc(collection(db, "feedback"), {
+        orderId,
+        rating: stars,
+        createdAt: serverTimestamp(),
+      });
+      setThanks(true);
+    } catch (e) {
+      alert("Could not submit rating. Please try again.");
+      console.error(e);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (loading) return <div className="max-w-2xl mx-auto p-6">Loading…</div>;
-  if (!order) return <div className="max-w-2xl mx-auto p-6">Order not found.</div>;
+  if (!order)
+    return <div className="max-w-2xl mx-auto p-6">Order not found.</div>;
 
   const createdAt = order.createdAt?.toDate
     ? order.createdAt.toDate()
-    : (order.createdAt instanceof Timestamp ? order.createdAt.toDate() : new Date());
+    : order.createdAt instanceof Timestamp
+    ? order.createdAt.toDate()
+    : new Date();
 
   return (
     <div className="max-w-[780px] mx-auto my-6 bg-white p-6 shadow print:shadow-none print:my-0 print:p-0">
@@ -69,10 +104,17 @@ export default function ReceiptPage({ params }) {
         <div>
           <h1 className="text-2xl font-semibold">Legacy Liquor</h1>
           <p className="text-sm text-gray-500">Order #{orderId}</p>
-          <p className="text-xs text-gray-500">Date: {createdAt.toLocaleString()}</p>
+          <p className="text-xs text-gray-500">
+            Date: {createdAt.toLocaleString()}
+          </p>
         </div>
         <div className="w-20 h-20 relative">
-          <Image src="/logo.png" alt="Legacy Liquor" fill style={{ objectFit: "contain" }} />
+          <Image
+            src="/logo.png"
+            alt="Legacy Liquor"
+            fill
+            style={{ objectFit: "contain" }}
+          />
         </div>
       </div>
 
@@ -87,30 +129,68 @@ export default function ReceiptPage({ params }) {
           </tr>
         </thead>
         <tbody>
-          {(order.items || []).map((it, idx) => (
-            <tr key={idx} className="border-t">
-              <td className="py-2 pr-2">{it.title || it.name}</td>
-              <td className="py-2 pr-2">{it.qty}</td>
-              <td className="py-2 pr-2">{money(it.priceCents)}</td>
-              <td className="py-2 pr-2 text-right">{money(it.lineTotalCents)}</td>
-            </tr>
-          ))}
+          {(order.items || []).map((it, idx) => {
+            const line =
+              it.lineTotalCents ??
+              (it.priceCents || 0) * (Number(it.qty || 0) || 0);
+            return (
+              <tr key={idx} className="border-t">
+                <td className="py-2 pr-2">{it.title || it.name}</td>
+                <td className="py-2 pr-2">{it.qty}</td>
+                <td className="py-2 pr-2">{money(it.priceCents)}</td>
+                <td className="py-2 pr-2 text-right">{money(line)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
       {/* Totals */}
       <div className="mt-4 text-sm space-y-1">
         <div className="flex justify-between">
-          <span>Subtotal</span><span>{money(order.subtotalCents)}</span>
+          <span>Subtotal</span>
+          <span>{money(order.subtotalCents)}</span>
         </div>
         <div className="flex justify-between">
-          <span>Tax</span><span>{money(order.taxCents)}</span>
+          <span>Tax</span>
+          <span>{money(order.taxCents)}</span>
         </div>
         <div className="flex justify-between">
-          <span>Delivery</span><span>{money(order.deliveryCents)}</span>
+          <span>Delivery</span>
+          <span>{money(order.deliveryCents)}</span>
         </div>
         <div className="flex justify-between font-semibold text-base pt-1 border-t mt-2">
-          <span>Total</span><span>{money(order.totalCents)}</span>
+          <span>Total</span>
+          <span>{money(order.totalCents)}</span>
+        </div>
+      </div>
+
+      {/* Rating */}
+      <div className="mt-6 border-t pt-4 print:hidden">
+        <div className="text-sm mb-2">Rate your experience</div>
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              onClick={() => setStars(n)}
+              aria-label={`Rate ${n} star${n > 1 ? "s" : ""}`}
+              className={`w-9 h-9 rounded-full border transition ${
+                stars >= n
+                  ? "bg-black text-white"
+                  : "bg-white hover:bg-gray-100"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+          <button
+            onClick={submitRating}
+            disabled={!stars || submitting || thanks}
+            className="ml-3 rounded px-3 py-2 text-white disabled:opacity-60"
+            style={{ background: "#ff6a00" }}
+          >
+            {thanks ? "Thanks!" : submitting ? "Submitting..." : "Submit"}
+          </button>
         </div>
       </div>
 
@@ -123,7 +203,9 @@ export default function ReceiptPage({ params }) {
         >
           Print receipt
         </button>
-        <Link href="/" className="underline">Back to store</Link>
+        <Link href="/" className="underline">
+          Back to store
+        </Link>
       </div>
 
       <p className="mt-8 text-center text-sm text-gray-600 print:mt-6">
@@ -132,12 +214,27 @@ export default function ReceiptPage({ params }) {
 
       <style jsx global>{`
         @media print {
-          html, body { background: white !important; }
-          .print\\:hidden { display: none !important; }
-          .print\\:shadow-none { box-shadow: none !important; }
-          .print\\:my-0 { margin-top: 0 !important; margin-bottom: 0 !important; }
-          .print\\:p-0 { padding: 0 !important; }
-          @page { size: A4; margin: 12mm; }
+          html,
+          body {
+            background: white !important;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+          .print\\:shadow-none {
+            box-shadow: none !important;
+          }
+          .print\\:my-0 {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+          }
+          .print\\:p-0 {
+            padding: 0 !important;
+          }
+          @page {
+            size: A4;
+            margin: 12mm;
+          }
         }
       `}</style>
     </div>
