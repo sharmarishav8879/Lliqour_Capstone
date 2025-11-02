@@ -1,49 +1,140 @@
 @import "tailwindcss";
 
+/* === Base color system === */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --color-bg: #ffffff;
+  --color-card: #f9f9f9;
+  --color-surface: #f1f1f1;
+
+  /* Text colors */
+  --color-text: #171717;
+  --color-text-muted: #555555;
+
+  /* Borders and shadows */
+  --color-border: #e5e5e5;
+  --color-shadow: rgba(0, 0, 0, 0.08);
+
+  /* Brand / accent colors */
+  --color-primary: #d5660c;
+  --color-primary-hover: #e57c1d;
+  --color-accent: #ffb266;
+
+  /* Transitions */
+  --transition-speed: 0.3s;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* === Dark Mode === */
 [data-theme="dark"] {
-  --background: #171717;
-  --foreground: #d5660c;
+  /* Backgrounds */
+  --color-bg: #121212;
+  --color-card: #1e1e1e;
+  --color-surface: #2a2a2a;
+
+  /* Text */
+  --color-text: #f1f1f1;
+  --color-text-muted: #b3b3b3;
+
+  /* Borders and shadows */
+  --color-border: #333333;
+  --color-shadow: rgba(0, 0, 0, 0.4);
+
+  /* Accent / brand tweaks */
+  --color-primary: #ff8a1d;
+  --color-primary-hover: #ffa94d;
+  --color-accent: #ffb266;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+/* === Global styles === */
+body,
+#root {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color var(--transition-speed) ease,
+    color var(--transition-speed) ease;
 }
 
-.shadow-top {
-  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 -2px 4px -2px rgba(0, 0, 0, 0.1);
+/* Smooth transition for everything */
+* {
+  transition: background-color var(--transition-speed) ease,
+    color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease,
+    box-shadow var(--transition-speed) ease;
 }
 
-/* Global override for Tailwind bg and text utilities */
+/* === Tailwind overrides === */
 .bg-white {
-  background-color: var(--background);
+  background-color: var(--color-bg) !important;
 }
 
 .text-black,
 .text-gray-900,
 .text-gray-800 {
-  color: var(--foreground);
+  color: var(--color-text) !important;
 }
 
-/* Ensure body and root fill the viewport */
-body,
-#root {
-  background-color: var(--background);
-  color: var(--foreground);
-  min-height: 100vh;
-  transition: background-color 0.3s, color 0.3s;
+.border-gray-200,
+.border-gray-300 {
+  border-color: var(--color-border) !important;
+}
+
+/* === Utility classes === */
+.shadow-top {
+  box-shadow: 0 -4px 6px -1px var(--color-shadow),
+    0 -2px 4px -2px var(--color-shadow);
+}
+
+/* Card styling example (you can reuse this class in components) */
+.card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+/* Buttons */
+.button-primary {
+  background-color: var(--color-primary);
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  border: none;
+  box-shadow: 0 2px 6px var(--color-shadow);
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform 0.2s;
+}
+.button-primary:hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+}
+
+/* Muted text and subtle links */
+.text-muted {
+  color: var(--color-text-muted);
+}
+a {
+  color: var(--color-primary);
+  transition: color var(--transition-speed);
+}
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* === Optional: fade-in animation when theme changes === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+body {
+  animation: fadeIn 0.4s ease;
 }

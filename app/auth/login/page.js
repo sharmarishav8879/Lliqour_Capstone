@@ -5,12 +5,15 @@ import { useState } from "react";
 import { auth, db } from "../_util/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const { theme } = useTheme();
 
   const handleSignIn = () => {
     router.push("/auth/signUp");
@@ -50,12 +53,18 @@ export default function Login() {
   };
 
   return (
-    <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center">
-      <div className="w-full max-w-md bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-6">
-        <h1 className="text-5xl font-bold text-black text-center mt-10">
-          Login
-        </h1>
-        <p className="text-lg text-black text-center">
+    <main
+      className={`${
+        theme === "light" ? "bg-white" : "bg-gray-900"
+      } min-h-screen pt-40 font-serif flex flex-col items-center`}
+    >
+      <div
+        className={`${
+          theme === "light" ? "bg-gray-50 text-black" : "bg-gray-800 text-white"
+        } w-full max-w-md rounded-2xl shadow-lg p-6 flex flex-col gap-6`}
+      >
+        <h1 className="text-5xl font-bold text-center mt-10">Login</h1>
+        <p className="text-lg text-center">
           Please enter your credentials to log in.
         </p>
 
@@ -65,7 +74,11 @@ export default function Login() {
         >
           <input
             onChange={(e) => setEmail(e.target.value)}
-            className="p-3 border bg-gray-50 border-gray-400 rounded-4xl text-black px-5"
+            className={`${
+              theme === "light"
+                ? "bg-gray-50 border-gray-400 text-black"
+                : "bg-gray-700 border-gray-600 text-white"
+            } p-3 border rounded-4xl px-5`}
             type="email"
             placeholder="Email"
             value={email}
@@ -74,7 +87,11 @@ export default function Login() {
           <div className="relative">
             <input
               onChange={(e) => setPassword(e.target.value)}
-              className="p-3 border bg-gray-50 border-gray-400 rounded-4xl text-black px-5 w-full pr-12"
+              className={`${
+                theme === "light"
+                  ? "bg-gray-50 border-gray-400 text-black"
+                  : "bg-gray-700 border-gray-600 text-white"
+              } p-3 border rounded-4xl px-5 w-full pr-12`}
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
@@ -82,7 +99,9 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"
+              className={`${
+                theme === "light" ? "text-gray-500" : "text-gray-300"
+              } absolute right-4 top-1/2 transform -translate-y-1/2`}
             >
               {showPassword ? (
                 <HiOutlineEyeOff size={24} />
@@ -100,8 +119,8 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="flex flex-row text-black items-center justify-center gap-2">
-          Don&apos;t have an account?
+        <div className="flex flex-row items-center justify-center gap-2">
+          <span>Don't have an account?</span>
           <p
             onClick={handleSignIn}
             className="text-orange-500 cursor-pointer font-semibold"

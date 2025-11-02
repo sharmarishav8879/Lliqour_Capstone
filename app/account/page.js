@@ -1,7 +1,14 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { useUserAuth } from "../auth/_util/auth-context";
 import { db } from "../auth/_util/firebase";
 import { HiOutlineCog, HiOutlineSearch } from "react-icons/hi";
@@ -13,6 +20,7 @@ import { getAllProducts } from "@/lib/products";
 import AddProducts from "../../adminComponents/addProducts";
 import { deleteProduct } from "../../adminComponents/deleteProducts";
 import UpdateProducts from "../../adminComponents/updateProducts";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function Profile() {
   const { user, loading: authLoading, firebaseSignOut } = useUserAuth();
@@ -28,7 +36,7 @@ export default function Profile() {
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
   const [showProductForm, setShowProductForm] = useState(false);
   const [tickets, setTickets] = useState([]);
-
+  const { theme } = useTheme();
 
   const handleSignOut = async () => {
     try {
@@ -40,71 +48,73 @@ export default function Profile() {
   };
 
   useEffect(() => {
-  if (authLoading) return;
+    if (authLoading) return;
 
-  if (!user) {
-    router.push("/auth/login");
-    return;
-  }
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
 
-  const fetchUserData = async () => {
-    try {
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnapshot = await getDoc(userDocRef);
-      if (userDocSnapshot.exists()) {
-        const userData = userDocSnapshot.data();
-        setName(userData.name);
-        setRole(userData.role || "user");
+    const fetchUserData = async () => {
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnapshot = await getDoc(userDocRef);
+        if (userDocSnapshot.exists()) {
+          const userData = userDocSnapshot.data();
+          setName(userData.name);
+          setRole(userData.role || "user");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+    };
 
-  const fetchTickets = async () => {
-    try {
-      const ticketsRef = collection(db, "tickets");
-      const q = query(ticketsRef, where("canView", "array-contains", user.uid));
-      const snapshot = await getDocs(q);
-      setTickets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-      setTickets([]);
-    }
-  };
+    const fetchTickets = async () => {
+      try {
+        const ticketsRef = collection(db, "tickets");
+        const q = query(
+          ticketsRef,
+          where("canView", "array-contains", user.uid)
+        );
+        const snapshot = await getDocs(q);
+        setTickets(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+        setTickets([]);
+      }
+    };
 
-  const fetchProducts = async () => {
-    try {
-      const products = await getAllProducts();
-      const normalized = (Array.isArray(products) ? products : []).map(
-        (p) => ({
-          id: p.docId || p.id,
-          slug: p.slug || p.docId,
-          name: p.name || "Unnamed Product",
-          category: p.category || "Uncategorized",
-          price: Number(p.price) || 0,
-          abv: p.abv || "",
-          size: p.size || "",
-          origin: p.origin || "",
-          description: p.description || "",
-          discount: Number(p.discount) || 0,
-          image: p.image || p.imageUrl || "/placeholderProduct.jpg",
-        })
-      );
-      setItems(normalized);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchProducts = async () => {
+      try {
+        const products = await getAllProducts();
+        const normalized = (Array.isArray(products) ? products : []).map(
+          (p) => ({
+            id: p.docId || p.id,
+            slug: p.slug || p.docId,
+            name: p.name || "Unnamed Product",
+            category: p.category || "Uncategorized",
+            price: Number(p.price) || 0,
+            abv: p.abv || "",
+            size: p.size || "",
+            origin: p.origin || "",
+            description: p.description || "",
+            discount: Number(p.discount) || 0,
+            image: p.image || p.imageUrl || "/placeholderProduct.jpg",
+          })
+        );
+        setItems(normalized);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchUserData();
-  fetchTickets();
-  fetchProducts();
-}, [user, authLoading, router]);
-
+    fetchUserData();
+    fetchTickets();
+    fetchProducts();
+  }, [user, authLoading, router]);
 
   const filteredItems = items.filter(
     (product) =>
@@ -207,29 +217,49 @@ export default function Profile() {
   }
 
   return (
-    <main className="bg-white min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif">
-      <div className="w-full max-w-md bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-6">
+    <main
+      className={`${
+        theme === "light" ? "bg-white" : "bg-gray-900"
+      } min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif`}
+    >
+      <div
+        className={`${
+          theme === "light" ? "bg-gray-50 text-black" : "bg-gray-800 text-white"
+        } w-full max-w-md rounded-2xl shadow-lg p-6 flex flex-col gap-6`}
+      >
         {user && (
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-gray-300 rounded-full overflow-hidden"></div>
+              <div
+                className={`${
+                  theme === "light" ? "bg-gray-300" : "bg-gray-700"
+                } w-20 h-20 rounded-full overflow-hidden`}
+              ></div>
               <div className="flex flex-col">
-                <h1 className="text-3xl font-bold text-black">
-                  {name || "No Name"}
-                </h1>
-                <p className="text-sm text-gray-600">{user.email}</p>
+                <h1 className="text-3xl font-bold">{name || "No Name"}</h1>
+                <p
+                  className={`${
+                    theme === "light" ? "text-gray-600" : "text-gray-300"
+                  }`}
+                >
+                  {user.email}
+                </p>
               </div>
             </div>
             <div className="flex flex-col items-end">
               <button
-                onClick={handleSignOut}
                 className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-4xl transition duration-300"
+                onClick={handleSignOut}
               >
                 Sign Out
               </button>
               <button
                 onClick={() => router.push("/account/settings")}
-                className="mt-2 flex items-center gap-2 text-gray-600 hover:text-black transition duration-300"
+                className={`${
+                  theme === "light"
+                    ? "text-gray-600 hover:text-black"
+                    : "text-gray-300 hover:text-white"
+                } mt-2 flex items-center gap-2 transition duration-300`}
               >
                 <HiOutlineCog size={24} />
               </button>
@@ -238,47 +268,68 @@ export default function Profile() {
         )}
 
         {role === "user" && (
-          <>
-            <div className="flex flex-col gap-4 mt-6">
-              <h2 className="text-2xl font-semibold text-black border-b pb-2">
-                Support Tickets
-              </h2>
+          <div className="flex flex-col gap-4 mt-6">
+            <h2
+              className={`text-2xl font-semibold border-b pb-2 ${
+                theme === "light"
+                  ? "text-black border-black"
+                  : "text-white border-gray-600"
+              }`}
+            >
+              Support Tickets
+            </h2>
 
-              {tickets.length === 0 && (
-                <p className="text-black">You have no tickets yet.</p>
-              )}
+            {tickets.length === 0 && (
+              <p
+                className={`${theme === "light" ? "text-black" : "text-white"}`}
+              >
+                You have no tickets yet.
+              </p>
+            )}
 
-              {tickets.map((ticket) => (
-                <Link key={ticket.id} href={`/ticketsChat/${ticket.id}`}>
-                    <InfoCard
-                      title={ticket.title}
-                      date={
-                        ticket.createdAt?.toDate
-                          ? ticket.createdAt.toDate().toLocaleDateString()
-                          : ""
-                      }
-                      subtitleLabel="Opened on"
-                    />
-                </Link>
-              ))}
-            </div>
-          </>
+            {tickets.map((ticket) => (
+              <Link key={ticket.id} href={`/ticketsChat/${ticket.id}`}>
+                <InfoCard
+                  title={ticket.title}
+                  date={
+                    ticket.createdAt?.toDate
+                      ? ticket.createdAt.toDate().toLocaleDateString()
+                      : ""
+                  }
+                  subtitleLabel="Opened on"
+                />
+              </Link>
+            ))}
+          </div>
         )}
 
         {role === "admin" && (
           <div className="flex flex-col gap-4 mt-6">
-            <div className="flex items-center justify-between w-full border-b border-black pb-2">
-              <h2 className="text-2xl font-semibold text-black flex-1">
+            <div
+              className={`flex items-center justify-between w-full border-b pb-2 ${
+                theme === "light" ? "border-black" : "border-gray-600"
+              }`}
+            >
+              <h2
+                className={`text-2xl font-semibold flex-1 ${
+                  theme === "light" ? "text-black" : "text-white"
+                }`}
+              >
                 Quick Catalogue
               </h2>
 
               <div className="flex items-center gap-1.5">
+                {/* Product Form Toggle */}
                 <div className="relative">
                   <button
+                    className={`${
+                      theme === "light"
+                        ? "bg-gray-200 text-black"
+                        : "bg-gray-700 text-white"
+                    } w-10 h-10 rounded-full flex items-center justify-center shadow`}
                     onClick={() => setShowProductForm((prev) => !prev)}
-                    className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
                   >
-                    <FiPlus size={20} className="text-black" />
+                    <FiPlus size={20} />
                   </button>
                   {showProductForm && (
                     <AddProducts
@@ -291,36 +342,47 @@ export default function Profile() {
                   )}
                 </div>
 
+                {/* Category Dropdown */}
                 <div className="relative">
                   <button
+                    className={`${
+                      theme === "light"
+                        ? "bg-gray-200 text-black"
+                        : "bg-gray-700 text-white"
+                    } h-10 w-22 px-4 rounded-full font-semibold flex justify-center items-center shadow`}
                     onClick={() => {
                       setShowCategoryDropdown((prev) => !prev);
                       setShowSearch(false);
                       setShowProductForm(false);
                     }}
-                    className="h-10 w-22 px-4 bg-gray-200 text-black rounded-full font-semibold flex justify-center items-center shadow"
                   >
                     {activeCategory || "All"}
                   </button>
                   {showCategoryDropdown && (
-                    <div className="absolute mt-2 right-0 w-full bg-white text-black font-semibold rounded-lg shadow-lg z-20">
+                    <div
+                      className={`${
+                        theme === "light"
+                          ? "bg-white text-black"
+                          : "bg-gray-800 text-white"
+                      } absolute mt-2 right-0 w-full font-semibold rounded-lg shadow-lg z-20`}
+                    >
                       <button
+                        className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
                         onClick={() => {
                           setActiveCategory(null);
                           setShowCategoryDropdown(false);
                         }}
-                        className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
                       >
                         All
                       </button>
                       {categories.map((category) => (
                         <button
                           key={category}
+                          className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
                           onClick={() => {
                             setActiveCategory(category);
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
                         >
                           {category}
                         </button>
@@ -329,33 +391,44 @@ export default function Profile() {
                   )}
                 </div>
 
+                {/* Search Button & Modal */}
                 <div className="relative">
                   <button
+                    className={`${
+                      theme === "light"
+                        ? "bg-gray-200 text-black"
+                        : "bg-gray-700 text-white"
+                    } w-10 h-10 rounded-full flex items-center justify-center shadow`}
                     onClick={() => {
                       setShowSearch((prev) => !prev);
                       setShowCategoryDropdown(false);
                       setShowProductForm(false);
                     }}
-                    className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center shadow"
                   >
-                    <HiOutlineSearch size={20} className="text-black" />
+                    <HiOutlineSearch size={20} />
                   </button>
                   {showSearch && (
-                    <div className="absolute top-full mt-2 right-0 flex items-center gap-2 border border-gray-300 text-black rounded-4xl p-2 w-[150px] bg-white shadow-lg font-serif z-20">
+                    <div
+                      className={`${
+                        theme === "light"
+                          ? "bg-white text-black border-gray-300"
+                          : "bg-gray-800 text-white border-gray-600"
+                      } absolute top-full mt-2 right-0 flex items-center gap-2 border rounded-4xl p-2 w-[150px] shadow-lg font-serif z-20`}
+                    >
                       <HiOutlineSearch className="text-xl" />
                       <input
                         type="text"
                         placeholder="Search"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border-none outline-none text-black w-full text-lg rounded-md"
+                        className="border-none outline-none w-full text-lg rounded-md"
                       />
                       <div
                         onClick={() => {
                           setSearchTerm("");
                           setShowSearch(false);
                         }}
-                        className="text-black cursor-pointer text-md pr-2"
+                        className="cursor-pointer text-md pr-2"
                       >
                         ✕
                       </div>
