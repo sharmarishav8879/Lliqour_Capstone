@@ -7,24 +7,37 @@ import { ShoppingCart } from "lucide-react";
 import MiniCartPopover from "./MiniCartPopover";
 
 export default function CartButton() {
-  const { items } = useCart();
-  const [open, setOpen] = useState(false);
+  const cart = useCart(); // prefer drawer if available
+  const items = Array.isArray(cart?.items) ? cart.items : [];
+  const hasDrawer = typeof cart?.setOpen === "function";
+
+  // Fallback popover state (used only when drawer isn't wired)
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const anchorRef = useRef(null);
 
-  // Optional: close on route change if you have router events (App Router usually remounts)
+  // Close popover on scroll (no-op if drawer path)
   useEffect(() => {
-    const onScroll = () => setOpen(false);
+    if (hasDrawer) return;
+    const onScroll = () => setPopoverOpen(false);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [hasDrawer]);
 
-  const count = items.reduce((n, it) => n + (it.qty || 1), 0);
+  const count = items.reduce((n, it) => n + (Number(it?.qty) || 1), 0);
+
+  function handleClick() {
+    if (hasDrawer) {
+      cart.setOpen(true);          // ✅ open right-side mini cart drawer
+    } else {
+      setPopoverOpen(true);        // ↩︎ fallback to existing popover
+    }
+  }
 
   return (
     <div>
       <button
         aria-label="Cart"
-        onClick={() => setOpen(true)}
+        onClick={handleClick}
         className="relative inline-flex items-center justify-center"
         title="Cart"
       >
@@ -41,28 +54,16 @@ export default function CartButton() {
         )}
       </button>
 
-      <div className="relative" ref={anchorRef}>
-        {/* <button
-          aria-label="Cart"
-          onClick={() => setOpen((v) => !v)}
-          className="relative p-2 rounded-full hover:bg-gray-100"
-        >
-          simple cart icon
-          <span style={{ fontSize: 18 }}>🛒</span>
-          {count > 0 && (
-            <span className="absolute -top-1 -right-1 text-[11px] bg-orange-500 text-white rounded-full px-1.5">
-              {count}
-            </span>
-          )}
-        </button> */}
-
-        {/* The new mini popover */}
-        <MiniCartPopover
-          open={open}
-          onClose={() => setOpen(false)}
-          anchorRef={anchorRef}
-        />
-      </div>
+      {/* Fallback popover (renders only when drawer API is not present) */}
+      {!hasDrawer && (
+        <div className="relative" ref={anchorRef}>
+          <MiniCartPopover
+            open={popoverOpen}
+            onClose={() => setPopoverOpen(false)}
+            anchorRef={anchorRef}
+          />
+        </div>
+      )}
     </div>
   );
 }
