@@ -27,7 +27,11 @@ export default function MailboxDropdown() {
           id: doc.id,
           ...doc.data(),
         }));
-        setMailboxMessages(messages);
+
+        const filteredMessages = messages.filter(
+          (msg) => msg.type === "announcement"
+        );
+        setMailboxMessages(filteredMessages);
 
         const readIds = JSON.parse(
           localStorage.getItem("readAnnouncements") || "[]"

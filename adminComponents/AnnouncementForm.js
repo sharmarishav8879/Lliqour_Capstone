@@ -6,11 +6,20 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 export default function AnnouncementForm() {
-  const [formData, setFormData] = useState({ title: "", message: "" });
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    type: "",
+  });
   const [loading, setLoading] = useState(false);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.title || !formData.message || !formData.type) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -29,7 +38,7 @@ export default function AnnouncementForm() {
   };
 
   return (
-    <div className="w-full max-w-md bg-gray-50 border border-gray-200 rounded-2xl shadow-xl p-8 flex flex-col gap-5 transition-all duration-300 hover:shadow-2xl">
+    <div className="w-full max-w-md mt-20 bg-gray-50 border border-gray-200 rounded-2xl shadow-xl p-8 flex flex-col gap-5 transition-all duration-300 hover:shadow-2xl">
       <h2 className="text-3xl font-bold text-center text-orange-600">
         Add Announcement
       </h2>
@@ -57,6 +66,21 @@ export default function AnnouncementForm() {
           rows={5}
           className="border border-gray-300 rounded-xl p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400 resize-none"
         ></textarea>
+
+        <label className="text-gray-950">Select Announcement Type</label>
+        <select
+          value={formData.type}
+          className="border rounded-lg p-2 bg-gray-50 text-gray-950 border-gray-300"
+          onChange={(e) =>
+            setFormData({ ...formData, type: e.target.value.toLowerCase() })
+          }
+        >
+          <option value="" disabled={formData.type !== ""}>
+            Select Type
+          </option>
+          <option value="banner">Banner</option>
+          <option value="announcement">Announcement</option>
+        </select>
 
         <button
           type="submit"
