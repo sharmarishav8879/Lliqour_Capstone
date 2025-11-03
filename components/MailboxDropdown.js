@@ -40,8 +40,8 @@ export default function MailboxDropdown() {
           (msg) => !readIds.includes(msg.id)
         ).length;
         setUnReadMessages(unreadCount);
-        return () => unsubscribe();
       });
+      return () => unsubscribe();
     } catch (error) {
       console.error("Error fetching mailbox messages: ", error);
       toast.error("Failed to load mailbox messages.");
@@ -65,9 +65,7 @@ export default function MailboxDropdown() {
       >
         <Mail className="w-7 h-7 text-gray-900" />
         {unReadMessages > 0 && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full">
-            {unReadMessages.length}
-          </span>
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full"></span>
         )}
       </button>
 

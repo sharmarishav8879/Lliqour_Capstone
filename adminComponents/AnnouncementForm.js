@@ -10,6 +10,7 @@ export default function AnnouncementForm() {
     title: "",
     message: "",
     type: "",
+    expiryDate: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +29,7 @@ export default function AnnouncementForm() {
         createdAt: new Date(),
       });
       toast.success("Announcement added successfully!");
-      setFormData({ title: "", message: "" });
+      setFormData({ title: "", message: "", type: "", expiryDate: "" });
     } catch (error) {
       toast.error("Failed to add announcement. Please try again.");
       console.error("Error adding announcement: ", error);
@@ -66,6 +67,16 @@ export default function AnnouncementForm() {
           rows={5}
           className="border border-gray-300 rounded-xl p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400 resize-none"
         ></textarea>
+
+        <input
+          type="date"
+          value={formData.expiryDate || ""}
+          onChange={(e) =>
+            setFormData({ ...formData, expiryDate: e.target.value })
+          }
+          required
+          className="border rounded-lg p-2 bg-gray-50 text-gray-950 border-gray-300"
+        />
 
         <label className="text-gray-950">Select Announcement Type</label>
         <select
