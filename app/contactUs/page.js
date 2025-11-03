@@ -277,7 +277,7 @@ export default function ContactUs() {
                 >
                   {/* Header */}
                   <div className="flex justify-between items-start mb-2">
-                    <h2 className="font-bold text-lg md:text-xl line-clamp-1">
+                    <h2 className="font-bold text-black text-lg md:text-xl line-clamp-1">
                       {ticket.title}
                     </h2>
                     <span
@@ -291,13 +291,11 @@ export default function ContactUs() {
                     </span>
                   </div>
 
-                  {/* Creator */}
                   <p className="text-black text-sm line-clamp-1">
                     Created by: {ticket.createdBy}
                   </p>
 
-                  {/* Messages Preview */}
-                  <div className="bg-gray-100 p-2 rounded-lg mt-2 overflow-y-auto flex-1 text-sm">
+                  <div className="bg-gray-100 text-black p-2 rounded-lg mt-2 overflow-y-auto flex-1 text-sm">
                     {ticket.messages.slice(-2).map((msg, i) => (
                       <div key={i} className="mb-1">
                         <p className="font-semibold line-clamp-1">
