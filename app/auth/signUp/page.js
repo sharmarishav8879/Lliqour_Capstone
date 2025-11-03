@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../_util/firebase";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function SignUp() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { theme } = useTheme();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -49,12 +51,18 @@ export default function SignUp() {
   };
 
   return (
-    <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center">
-      <div className="w-full max-w-md bg-gray-50 rounded-2xl shadow-lg p-6 flex flex-col gap-6">
-        <h1 className="text-5xl font-bold text-black text-center mt-10">
-          Sign Up
-        </h1>
-        <p className="text-lg text-black text-center">
+    <main
+      className={`${
+        theme === "light" ? "bg-white" : "bg-gray-900"
+      } min-h-screen pt-30 font-serif flex flex-col items-center`}
+    >
+      <div
+        className={`${
+          theme === "light" ? "bg-gray-50 text-black" : "bg-gray-800 text-white"
+        } w-full max-w-md rounded-2xl shadow-lg p-6 flex flex-col gap-6`}
+      >
+        <h1 className="text-5xl font-bold text-center ">Sign Up</h1>
+        <p className="text-lg text-center">
           Please fill in the details to create an account.
         </p>
 
@@ -65,7 +73,11 @@ export default function SignUp() {
           <input
             onChange={(e) => setName(e.target.value)}
             value={name}
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            className={`${
+              theme === "light"
+                ? "bg-white border-gray-400 text-black"
+                : "bg-gray-700 border-gray-600 text-white"
+            } p-3 border rounded-4xl px-5`}
             type="text"
             placeholder="Enter your name"
           />
@@ -73,7 +85,11 @@ export default function SignUp() {
           <input
             onChange={(e) => setEmail(e.target.value)}
             value={email}
-            className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5"
+            className={`${
+              theme === "light"
+                ? "bg-white border-gray-400 text-black"
+                : "bg-gray-700 border-gray-600 text-white"
+            } p-3 border rounded-4xl px-5`}
             type="email"
             placeholder="Enter your email"
           />
@@ -84,12 +100,18 @@ export default function SignUp() {
               value={password}
               type={showPassword ? "text" : "password"}
               placeholder="Enter a strong password"
-              className="p-3 border bg-white border-gray-400 rounded-4xl text-black px-5 w-full pr-12"
+              className={`${
+                theme === "light"
+                  ? "bg-white border-gray-400 text-black"
+                  : "bg-gray-700 border-gray-600 text-white"
+              } p-3 border rounded-4xl px-5 w-full pr-12`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute bg-white right-4 top-1/2 transform -translate-y-1/2 text-gray-500"
+              className={`${
+                theme === "light" ? "text-gray-500" : "text-gray-300"
+              } absolute right-4 top-1/2 transform -translate-y-1/2`}
             >
               {showPassword ? (
                 <HiOutlineEyeOff size={24} />
@@ -105,12 +127,18 @@ export default function SignUp() {
               value={confirmPassword}
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm password"
-              className="p-3 border border-gray-400 rounded-4xl text-black px-5 w-full pr-12"
+              className={`${
+                theme === "light"
+                  ? "bg-white border-gray-400 text-black"
+                  : "bg-gray-700 border-gray-600 text-white"
+              } p-3 border rounded-4xl px-5 w-full pr-12`}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"
+              className={`${
+                theme === "light" ? "text-gray-500" : "text-gray-300"
+              } absolute right-4 top-1/2 transform -translate-y-1/2`}
             >
               {showConfirmPassword ? (
                 <HiOutlineEyeOff size={24} />
@@ -128,8 +156,8 @@ export default function SignUp() {
           </button>
         </form>
 
-        <div className="flex flex-row text-black items-center justify-center gap-2">
-          Already have an account?
+        <div className="flex flex-row items-center justify-center gap-2">
+          <span>Already have an account?</span>
           <p
             onClick={handleSignInRedirect}
             className="text-orange-500 cursor-pointer font-semibold"

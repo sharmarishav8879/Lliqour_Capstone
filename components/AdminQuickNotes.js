@@ -30,6 +30,7 @@ export default function AdminQuickNotes() {
               ✕
             </button>
           </div>
+
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
