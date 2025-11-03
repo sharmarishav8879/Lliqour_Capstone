@@ -59,7 +59,7 @@ export default function MailboxDropdown() {
         }}
         className="relative p-2"
       >
-        <Mail className="w-7 h-7 text-gray-700" />
+        <Mail className="w-7 h-7 text-gray-900" />
         {unReadMessages > 0 && (
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full">
             {unReadMessages.length}
@@ -82,7 +82,9 @@ export default function MailboxDropdown() {
                   className="border-b pb-2 last:border-none text-sm text-gray-700"
                 >
                   <p className="font-bold text-orange-500">{a.title}</p>
-                  <p>{a.message}</p>
+                  <p className="text-gray-900 line-clamp-2 hover:line-clamp-none">
+                    {a.message}
+                  </p>
                 </li>
               ))}
             </ul>

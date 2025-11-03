@@ -5,9 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useUserAuth } from "../../auth/_util/auth-context";
 import { db } from "../../auth/_util/firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
 import { IoMdRefresh } from "react-icons/io";
-import { deleteDoc } from "firebase/firestore";
 import { MdOutlineSaveAlt } from "react-icons/md";
 import { TbCancel } from "react-icons/tb";
 import { MdModeEditOutline } from "react-icons/md";
@@ -233,19 +232,30 @@ export default function TicketChat() {
           )}
         </div>
 
-        <div className="flex flex-col gap-4 mt-6 max-h-[60vh] overflow-y-auto">
+        {/* Messages */}
+        <div className="flex flex-col gap-4 mt-6 max-h-[60vh] overflow-y-auto scrollbar-hide">
           {ticket.messages.map((msg, idx) => (
             <div
               key={idx}
               className={`p-3 rounded-2xl max-w-[70%] ${
                 msg.senderId === user.uid
                   ? "bg-orange-500 text-white self-end"
-                  : "bg-gray-200 text-black self-start"
+                  : theme === "light"
+                  ? "bg-gray-200 text-black self-start"
+                  : "bg-gray-700 text-white self-start"
               }`}
             >
               <p className="font-semibold">{msg.senderName}</p>
               <p className="mt-1">{msg.message}</p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p
+                className={`text-xs mt-1 ${
+                  msg.senderId === user.uid
+                    ? "text-orange-100"
+                    : theme === "light"
+                    ? "text-gray-600"
+                    : "text-gray-300"
+                }`}
+              >
                 {msg.timestamp.toDate
                   ? msg.timestamp.toDate().toLocaleString()
                   : new Date(msg.timestamp).toLocaleString()}
@@ -254,6 +264,7 @@ export default function TicketChat() {
           ))}
         </div>
 
+        {/* Input Field */}
         <div className="flex gap-2 mt-4">
           <input
             type="text"

@@ -4,12 +4,19 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getAllProducts } from "@/lib/products";
+import { useTheme } from "@/components/ThemeToggle";
 
 function ProductCard({ product, className = "" }) {
+  const { theme } = useTheme();
   return (
     <Link
       href={`/products/${product.slug}`}
-      className={`bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 ${className}`}
+      className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 ${className} 
+       ${
+         theme === "light"
+           ? "bg-white border border-gray-300"
+           : "bg-gray-800 border border-gray-700"
+       }`}
     >
       <img
         src={product.image}
@@ -18,7 +25,7 @@ function ProductCard({ product, className = "" }) {
       />
       <div className="p-4 flex flex-col justify-between h-40">
         <div className="font-bold text-lg text-black">{product.name}</div>
-        <div className="text-sm text-gray-600 mt-1">
+        <div className="text-sm text-gray-900 mt-1">
           {product.size ? `${product.size} • ` : ""}
           {product.abv ? `${product.abv} • ` : ""}
           {product.origin || ""}
@@ -32,10 +39,16 @@ function ProductCard({ product, className = "" }) {
 }
 
 function OfferProductCard({ product }) {
+  const { theme } = useTheme();
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="bg-gray-100 border border-gray-300 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+      className={`rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow 
+        ${
+          theme === "light"
+            ? "bg-white border border-gray-300"
+            : "bg-gray-800 border border-gray-700"
+        }`}
     >
       <Image
         src={product.image}
@@ -45,8 +58,8 @@ function OfferProductCard({ product }) {
         className="w-full h-48 object-cover"
       />
       <div className="p-4 flex flex-col justify-between h-40">
-        <div className="font-bold text-lg text-black">{product.name}</div>
-        <div className="text-sm text-gray-600 mt-1">
+        <div className="font-bold text-lg text-gray-900">{product.name}</div>
+        <div className="text-sm text-gray-900 mt-1">
           {product.size ? `${product.size} • ` : ""}
           {product.abv ? `${product.abv} • ` : ""}
           {product.origin || ""}
@@ -63,6 +76,7 @@ export default function Home() {
   const [items, setItems] = useState([]);
   const [activeCategory, setActiveCategory] = useState("Whisky");
   const [offerProducts, setOfferProducts] = useState([]);
+  const { theme } = useTheme();
 
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
 
@@ -135,25 +149,29 @@ export default function Home() {
 
   return (
     <main className="scroll-smooth font-serif">
-      <section className="relative flex items-center h-[70vh] bg-white">
-        <div className="w-full h-full relative">
+      <section className="relative flex items-center h-[70vh]">
+        <div className="absolute inset-0 -z-10">
           <Image
             src="/beerHeader.png"
             alt="Beer Header"
             fill
-            className={`object-cover`}
+            className="object-cover object-center"
             priority
           />
         </div>
 
-        <div className="absolute left-[25%] top-[60%] transform -translate-y-1/2 text-black max-w-md">
+        <div
+          className={`absolute left-[25%] top-[60%] transform -translate-y-1/2 max-w-md
+        ${theme === "light" ? "text-black" : "text-gray-950"}`}
+        >
           <h1 className="text-8xl font-bold">Shop Save Enjoy</h1>
         </div>
       </section>
 
       <section
         id="special-offer"
-        className="relative flex flex-col items-center h-[80vh] bg-white scroll-mt-[80px]"
+        className={`relative flex flex-col items-center h-[80vh] scroll-mt-[80px] 
+      ${theme === "light" ? "bg-white" : "bg-gray-900"}`}
       >
         <div className="mt-16 bg-gradient-to-r from-orange-400 to-orange-600 px-12 py-6 rounded-3xl shadow-2xl relative inline-block text-center">
           <h2 className="text-5xl md:text-6xl font-extrabold text-white tracking-wide">
@@ -172,9 +190,16 @@ export default function Home() {
 
       <section
         id="catalogue"
-        className="min-h-screen flex flex-col items-center bg-white py-25 scroll-mt-[80px] "
+        className={`min-h-screen flex flex-col items-center py-25 scroll-mt-[80px] 
+      ${theme === "light" ? "bg-white" : "bg-gray-900"}`}
       >
-        <h2 className="text-7xl font-bold text-black mb-12">Catalogue</h2>
+        <h2
+          className={`text-7xl font-bold mb-12 ${
+            theme === "light" ? "text-black" : "text-white"
+          }`}
+        >
+          Catalogue
+        </h2>
 
         <nav className="flex flex-wrap justify-center gap-4 relative z-10">
           {categories.map((category) => (
@@ -183,12 +208,14 @@ export default function Home() {
               onClick={() =>
                 setActiveCategory(activeCategory === category ? null : category)
               }
-              className={`px-6 py-2 rounded-full font-semibold transition 
-                ${
-                  activeCategory === category
-                    ? "bg-orange-500 text-white shadow-lg"
-                    : "bg-gray-200 text-black hover:bg-gray-300"
-                }`}
+              className={`px-6 py-2 rounded-full font-semibold transition
+            ${
+              activeCategory === category
+                ? "bg-orange-500 text-white shadow-lg"
+                : theme === "light"
+                ? "bg-gray-200 text-black hover:bg-gray-300"
+                : "bg-gray-700 text-white hover:bg-gray-600"
+            }`}
             >
               {category}
             </button>
@@ -197,7 +224,11 @@ export default function Home() {
 
         {activeCategory && (
           <div className="w-full max-w-6xl">
-            <h3 className="text-3xl font-semibold text-black mb-4">
+            <h3
+              className={`text-3xl font-semibold mb-4 ${
+                theme === "light" ? "text-black" : "text-white"
+              }`}
+            >
               {activeCategory}
             </h3>
             <div className="flex space-x-6 overflow-x-auto py-2 scrollbar-hide">
