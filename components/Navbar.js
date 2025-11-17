@@ -97,20 +97,20 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-colors duration-300 border-b
+      className={`sticky top-0 z-50 transition-colors duration-300 border-b py-4
         ${theme === "light" ? "bg-white border-neutral-200" : "bg-gray-950 border-gray-800"}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* top row */}
-        <div className="h-[72px] flex items-center justify-between gap-3">
+        <div className="h-[90px] flex items-center justify-between gap-3">
           {/* brand */}
           <Link href={role === "admin" ? "/admin" : "/"} className="flex items-center gap-2">
             <Image
               src="/Logo.jpg"
               className="border-orange-500 border-2 rounded-full"
               alt="Legacy Liquor Logo"
-              width={50}
-              height={50}
+              width={60}
+              height={60}
             />
             <span
               className={`text-2xl font-bold font-serif ${
@@ -140,6 +140,7 @@ export default function Navbar() {
                 <li><a href="/#special-offer">Special Offers</a></li>
                 <li><a href="/#catalogue">Catalogue</a></li>
                 <li><Link href="/contactUs">Contact Us</Link></li>
+                <li><Link href="/party-planner">Party Planner</Link></li>
               </>
             )}
           </ul>
@@ -229,6 +230,7 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
 
       {/* results overlay panel */}
       {filter !== "" && (
