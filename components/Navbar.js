@@ -140,6 +140,7 @@ export default function Navbar() {
                 <li><a href="/#special-offer">Special Offers</a></li>
                 <li><a href="/#catalogue">Catalogue</a></li>
                 <li><Link href="/contactUs">Contact Us</Link></li>
+                <li><Link href="/party-planner">Party Planner</Link></li>
               </>
             )}
           </ul>
