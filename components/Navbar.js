@@ -230,7 +230,7 @@ export default function Navbar() {
           </div>
         )}
       </div>
-      
+
 
       {/* results overlay panel */}
       {filter !== "" && (
