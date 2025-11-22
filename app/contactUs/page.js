@@ -263,52 +263,56 @@ export default function ContactUs() {
       ) : (
         user &&
         role === "admin" && (
-          <div className="w-full max-w-6xl flex flex-col items-center gap-6">
-            <h1
-              className={`${
-                theme === "light" ? "text-black" : "text-white"
-              } text-5xl font-bold text-center mt-10`}
-            >
+          <div className="w-full max-w-6xl flex flex-col items-center gap-6 px-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-black text-center mt-8">
               Admin Ticket Panel
             </h1>
 
-            {tickets.map((ticket) => (
-              <Link
-                key={ticket.id}
-                href={`/ticketsChat/${ticket.id}`}
-                className={`${
-                  theme === "light"
-                    ? "bg-gray-50 text-black"
-                    : "bg-gray-800 text-white"
-                } w-full rounded-2xl shadow-lg p-6 flex flex-col gap-4 hover:shadow-2xl transition-shadow duration-300`}
-              >
-                <h2 className="font-bold text-xl">{ticket.title}</h2>
-                <p className="text-sm">Created by: {ticket.createdBy}</p>
-
-                <div
-                  className={`${
-                    theme === "light" ? "bg-gray-100" : "bg-gray-700"
-                  } p-3 rounded-lg max-h-64 overflow-y-auto`}
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+              {tickets.map((ticket) => (
+                <Link
+                  key={ticket.id}
+                  href={`/ticketsChat/${ticket.id}`}
+                  className="bg-gray-50 rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 flex flex-col justify-between h-48"
                 >
-                  {ticket.messages.slice(-3).map((msg, i) => (
-                    <div key={i} className="mb-2">
-                      <p className="font-bold">{msg.senderName}:</p>
-                      <p className="text-sm">{msg.message}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(
-                          msg.timestamp?.seconds * 1000 || msg.timestamp
-                        ).toLocaleString()}
+                  {/* Header */}
+                  <div className="flex justify-between items-start mb-2">
+                    <h2 className="font-bold text-black text-lg md:text-xl line-clamp-1">
+                      {ticket.title}
+                    </h2>
+                    <span
+                      className={`text-xs font-semibold ${
+                        ticket.status === "Closed"
+                          ? "text-red-500"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {ticket.status}
+                    </span>
+                  </div>
+
+                  <p className="text-black text-sm line-clamp-1">
+                    Created by: {ticket.createdBy}
+                  </p>
+
+                  <div className="bg-gray-100 text-black p-2 rounded-lg mt-2 overflow-y-auto flex-1 text-sm">
+                    {ticket.messages.slice(-2).map((msg, i) => (
+                      <div key={i} className="mb-1">
+                        <p className="font-semibold line-clamp-1">
+                          {msg.senderName}:
+                        </p>
+                        <p className="line-clamp-1">{msg.message}</p>
+                      </div>
+                    ))}
+                    {ticket.messages.length > 2 && (
+                      <p className="text-gray-500 text-xs mt-1">
+                        ...see full conversation
                       </p>
-                    </div>
-                  ))}
-                  {ticket.messages.length > 3 && (
-                    <p className="text-gray-500 text-xs mt-1">
-                      ...see full conversation
-                    </p>
-                  )}
-                </div>
-              </Link>
-            ))}
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )
       )}
