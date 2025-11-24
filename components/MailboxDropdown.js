@@ -36,7 +36,7 @@ export default function MailboxDropdown() {
         const readIds = JSON.parse(
           localStorage.getItem("readAnnouncements") || "[]"
         );
-        const unreadCount = messages.filter(
+        const unreadCount = filteredMessages.filter(
           (msg) => !readIds.includes(msg.id)
         ).length;
         setUnReadMessages(unreadCount);

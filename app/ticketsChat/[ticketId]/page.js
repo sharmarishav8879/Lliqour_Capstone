@@ -1,5 +1,3 @@
-//Prompt: "make me a basic [ticketsId] that matches my theme and displays both sides of the converstation" + also sending both contactUs and Account pages to work with and use logic from them to make it work with firebase and auth
-
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -13,14 +11,15 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { IoMdRefresh } from "react-icons/io";
-import { MdOutlineSaveAlt } from "react-icons/md";
+import { MdOutlineSaveAlt, MdModeEditOutline } from "react-icons/md";
 import { TbCancel } from "react-icons/tb";
-import { MdModeEditOutline } from "react-icons/md";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function TicketChat() {
   const params = useParams();
   const ticketId = params.ticketId;
   const { user, loading: authLoading } = useUserAuth();
+  const { theme } = useTheme();
   const router = useRouter();
 
   const [ticket, setTicket] = useState(null);
@@ -33,9 +32,7 @@ export default function TicketChat() {
   const [editingTitle, setEditingTitle] = useState("");
 
   useEffect(() => {
-    if (!loading && ticketDeleted) {
-      router.push("/contactUs");
-    }
+    if (!loading && ticketDeleted) router.push("/contactUs");
   }, [loading, ticketDeleted, router]);
 
   useEffect(() => {
@@ -73,7 +70,6 @@ export default function TicketChat() {
         }
 
         const ticketData = ticketSnap.data();
-
         const canView = Array.isArray(ticketData.canView)
           ? ticketData.canView
           : [];
@@ -94,14 +90,12 @@ export default function TicketChat() {
     };
 
     fetchUserData().then(fetchTicket);
-
     const interval = setInterval(fetchTicket, 5000);
     return () => clearInterval(interval);
   }, [user, authLoading, router, ticketId]);
 
   const sendReply = async () => {
     if (!replyText.trim()) return;
-
     try {
       const ticketRef = doc(db, "tickets", ticketId);
       const newMessage = {
@@ -110,11 +104,7 @@ export default function TicketChat() {
         message: replyText.trim(),
         timestamp: new Date(),
       };
-
-      await updateDoc(ticketRef, {
-        messages: arrayUnion(newMessage),
-      });
-
+      await updateDoc(ticketRef, { messages: arrayUnion(newMessage) });
       setTicket((prev) => ({
         ...prev,
         messages: [...prev.messages, newMessage],
@@ -126,14 +116,11 @@ export default function TicketChat() {
     }
   };
 
-  const handleRefresh = () => {
-    window.location.reload();
-  };
+  const handleRefresh = () => window.location.reload();
 
   const handleCloseTicket = async () => {
     if (!ticket?.id) return;
     if (!confirm("Are you sure you want to close this ticket?")) return;
-
     try {
       const ticketRef = doc(db, "tickets", ticket.id);
       await deleteDoc(ticketRef);
@@ -146,12 +133,29 @@ export default function TicketChat() {
   };
 
   if (loading || ticketDeleted) {
-    return <p className="text-black mt-40 text-center">Loading ticket...</p>;
+    return (
+      <p
+        className={`${
+          theme === "light" ? "text-black" : "text-white"
+        } mt-40 text-center`}
+      >
+        Loading ticket...
+      </p>
+    );
   }
 
   return (
-    <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center px-4">
-      <div className="w-full max-w-3xl bg-gray-50  shadow-lg p-6 flex flex-col gap-6 rounded-4xl">
+    <main
+      className={`${
+        theme === "light" ? "bg-white" : "bg-gray-900"
+      } min-h-screen pt-40 font-serif flex flex-col items-center px-4`}
+    >
+      <div
+        className={`${
+          theme === "light" ? "bg-gray-50 text-black" : "bg-gray-800 text-white"
+        } w-full max-w-3xl shadow-lg p-6 flex flex-col gap-6 rounded-4xl`}
+      >
+        {/* Ticket Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {role === "admin" && isEditingTitle ? (
@@ -160,7 +164,11 @@ export default function TicketChat() {
                   type="text"
                   value={editingTitle}
                   onChange={(e) => setEditingTitle(e.target.value)}
-                  className="text-3xl font-bold flex-1 py-2 px-3 border border-gray-400 rounded-4xl"
+                  className={`${
+                    theme === "light"
+                      ? "bg-white text-black border-gray-400"
+                      : "bg-gray-700 text-white border-gray-600"
+                  } text-3xl font-bold flex-1 py-2 px-3 border rounded-4xl`}
                 />
                 <button
                   onClick={async () => {
@@ -171,27 +179,24 @@ export default function TicketChat() {
                       setIsEditingTitle(false);
                       alert("Ticket name updated successfully!");
                     } catch (err) {
-                      console.error("Error updating ticket title:", err);
+                      console.error(err);
                       alert("Failed to update ticket title.");
                     }
                   }}
-                  className="p-2 rounded-4xl font-medium text-white bg-green-500 hover:bg-green-600 transition-all duration-300 flex items-center gap-2"
+                  className="p-2 rounded-4xl font-medium bg-green-500 hover:bg-green-600 text-white flex items-center gap-2 transition-all duration-300"
                 >
                   <MdOutlineSaveAlt size={20} />
                 </button>
-
                 <button
                   onClick={() => setIsEditingTitle(false)}
-                  className="p-2 rounded-4xl font-medium text-white bg-gray-400 hover:bg-gray-500 transition-all duration-300 flex items-center gap-2"
+                  className="p-2 rounded-4xl font-medium bg-gray-400 hover:bg-gray-500 text-white flex items-center gap-2 transition-all duration-300"
                 >
                   <TbCancel size={20} />
                 </button>
               </>
             ) : (
               <>
-                <h1 className="text-4xl font-bold text-black">
-                  {ticket.title}
-                </h1>
+                <h1 className="text-4xl font-bold">{ticket.title}</h1>
                 {role === "admin" && (
                   <button
                     onClick={() => {
@@ -210,14 +215,23 @@ export default function TicketChat() {
           <button
             onClick={handleRefresh}
             title="Refresh ticket"
-            className="p-2 rounded-full text-black hover:text-orange-500 transition-colors duration-200"
+            className={`${
+              theme === "light"
+                ? "text-black hover:text-orange-500"
+                : "text-white hover:text-orange-400"
+            } p-2 rounded-full transition-colors duration-200`}
           >
             <IoMdRefresh size={26} />
           </button>
         </div>
 
+        {/* Status & Close */}
         <div className="flex items-center gap-3">
-          <p className="text-sm text-gray-500">
+          <p
+            className={`${
+              theme === "light" ? "text-gray-500" : "text-gray-300"
+            } text-sm`}
+          >
             Status:{" "}
             <span
               className={`font-semibold ${
@@ -227,7 +241,6 @@ export default function TicketChat() {
               {ticket.status}
             </span>
           </p>
-
           {role === "admin" && ticket.status !== "Closed" && (
             <button
               onClick={handleCloseTicket}
@@ -238,14 +251,19 @@ export default function TicketChat() {
           )}
         </div>
 
+        {/* Messages */}
         <div className="flex flex-col gap-4 mt-6 max-h-[60vh] overflow-y-auto scrollbar-hide">
           {ticket.messages.map((msg, idx) => (
             <div
               key={idx}
               className={`p-3 rounded-2xl max-w-[70%] ${
                 msg.senderId === user.uid
-                  ? "bg-orange-500 text-white self-end"
-                  : "bg-gray-200 text-black self-start"
+                  ? theme === "light"
+                    ? "bg-orange-500 text-white self-end"
+                    : "bg-orange-700 text-white self-end"
+                  : theme === "light"
+                  ? "bg-gray-200 text-black self-start"
+                  : "bg-gray-700 text-white self-start"
               }`}
             >
               <p className="font-semibold">{msg.senderName}</p>
@@ -253,8 +271,12 @@ export default function TicketChat() {
               <p
                 className={`text-xs mt-1 ${
                   msg.senderId === user.uid
-                    ? "text-orange-100"
-                    : "text-gray-600"
+                    ? theme === "light"
+                      ? "text-orange-100"
+                      : "text-orange-200"
+                    : theme === "light"
+                    ? "text-gray-600"
+                    : "text-gray-400"
                 }`}
               >
                 {msg.timestamp.toDate
@@ -265,13 +287,18 @@ export default function TicketChat() {
           ))}
         </div>
 
+        {/* Reply Input */}
         <div className="flex gap-2 mt-4">
           <input
             type="text"
             placeholder="Type a reply..."
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            className="flex-1 p-3 border border-gray-400 rounded-4xl"
+            className={`${
+              theme === "light"
+                ? "bg-white text-black border-gray-400"
+                : "bg-gray-700 text-white border-gray-600"
+            } flex-1 p-3 border rounded-4xl`}
           />
           <button
             onClick={sendReply}

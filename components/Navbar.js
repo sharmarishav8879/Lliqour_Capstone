@@ -45,7 +45,9 @@ export default function Navbar() {
         if (selectedCategory) {
           filtered = filtered.filter((p) => p.category === selectedCategory);
         }
-        filtered.sort((a, b) => (order === "asc" ? a.price - b.price : b.price - a.price));
+        filtered.sort((a, b) =>
+          order === "asc" ? a.price - b.price : b.price - a.price
+        );
         setFilterProducts(filtered);
       } catch (error) {
         alert(`Error fetching products: ${error.message}`);
@@ -92,19 +94,28 @@ export default function Navbar() {
   // persist + broadcast preview changes
   useEffect(() => {
     localStorage.setItem(PREVIEW_LS_KEY, adminPreview ? "on" : "off");
-    window.dispatchEvent(new CustomEvent("adminUserPreview", { detail: { on: adminPreview } }));
+    window.dispatchEvent(
+      new CustomEvent("adminUserPreview", { detail: { on: adminPreview } })
+    );
   }, [adminPreview]);
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-colors duration-300 border-b py-4
-        ${theme === "light" ? "bg-white border-neutral-200" : "bg-gray-950 border-gray-800"}`}
+      className={`sticky top-0 z-50 transition-colors duration-300 border-b 
+        ${
+          theme === "light"
+            ? "bg-white border-neutral-200"
+            : "bg-gray-950 border-gray-800"
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* top row */}
         <div className="h-[90px] flex items-center justify-between gap-3">
           {/* brand */}
-          <Link href={role === "admin" ? "/admin" : "/"} className="flex items-center gap-2">
+          <Link
+            href={role === "admin" ? "/admin" : "/"}
+            className="flex items-center gap-2"
+          >
             <Image
               src="/Logo.jpg"
               className="border-orange-500 border-2 rounded-full"
@@ -129,18 +140,36 @@ export default function Navbar() {
           >
             {role === "admin" ? (
               <>
-                <li><Link href="/admin">Admin</Link></li>
-                <li><Link href="/admin/insights">Insights</Link></li>
-                <li><Link href="/contactUs">Contact Us</Link></li>
-                <li><Link href="/admin/announcements">Announcements</Link></li>
+                <li>
+                  <Link href="/admin">Admin</Link>
+                </li>
+                <li>
+                  <Link href="/admin/insights">Insights</Link>
+                </li>
+                <li>
+                  <Link href="/contactUs">Contact Us</Link>
+                </li>
+                <li>
+                  <Link href="/admin/announcements">Announcements</Link>
+                </li>
               </>
             ) : (
               <>
-                <li><Link href="/">Home</Link></li>
-                <li><a href="/#special-offer">Special Offers</a></li>
-                <li><a href="/#catalogue">Catalogue</a></li>
-                <li><Link href="/contactUs">Contact Us</Link></li>
-                <li><Link href="/party-planner">Party Planner</Link></li>
+                <li>
+                  <Link href="/">Home</Link>
+                </li>
+                <li>
+                  <a href="/#special-offer">Special Offers</a>
+                </li>
+                <li>
+                  <a href="/#catalogue">Catalogue</a>
+                </li>
+                <li>
+                  <Link href="/contactUs">Contact Us</Link>
+                </li>
+                <li>
+                  <Link href="/party-planner">Party Planner</Link>
+                </li>
               </>
             )}
           </ul>
@@ -150,16 +179,20 @@ export default function Navbar() {
             {/* search */}
             <button
               onClick={() => setShowSearch((v) => !v)}
-              className="focus:outline-none"
+              className="focus:outline-none "
               aria-label="Toggle Search"
               title="Search"
             >
-              <HiOutlineSearch className={theme === "light" ? "text-black" : "text-white"} />
+              <HiOutlineSearch
+                className={theme === "light" ? "text-black" : "text-white"}
+              />
             </button>
 
             {/* account */}
             <Link href="/account" aria-label="Account" title="Account">
-              <HiOutlineUser className={theme === "light" ? "text-black" : "text-white"} />
+              <HiOutlineUser
+                className={theme === "light" ? "text-black" : "text-white"}
+              />
             </Link>
 
             {/* cart + mailbox */}
@@ -186,7 +219,11 @@ export default function Navbar() {
                 className="ml-1 flex items-center gap-2 cursor-pointer select-none text-sm"
                 title="Preview the customer-facing site inside Admin pages"
               >
-                <span className={theme === "light" ? "text-orange-700" : "text-orange-300"}>
+                <span
+                  className={
+                    theme === "light" ? "text-orange-700" : "text-orange-300"
+                  }
+                >
                   User dashboard
                 </span>
                 <input
@@ -206,7 +243,11 @@ export default function Navbar() {
           <div className="relative mb-4">
             <div
               className={`absolute right-0 top-0 mt-0 flex items-center gap-3 border rounded-2xl p-2 w-[320px] shadow-lg font-serif
-                ${theme === "light" ? "bg-white border-gray-300 text-black" : "bg-gray-800 border-gray-600 text-white"}`}
+                ${
+                  theme === "light"
+                    ? "bg-white border-gray-300 text-black"
+                    : "bg-gray-800 border-gray-600 text-white"
+                }`}
             >
               <HiOutlineSearch className="text-xl" />
               <input
@@ -231,7 +272,6 @@ export default function Navbar() {
         )}
       </div>
 
-
       {/* results overlay panel */}
       {filter !== "" && (
         <>
@@ -243,7 +283,11 @@ export default function Navbar() {
             <div
               onClick={(e) => e.stopPropagation()}
               className={`max-w-6xl mx-auto rounded-2xl shadow-lg p-6 font-serif
-                ${theme === "light" ? "bg-white text-black" : "bg-gray-800 text-white"}`}
+                ${
+                  theme === "light"
+                    ? "bg-white text-black"
+                    : "bg-gray-800 text-white"
+                }`}
             >
               {/* controls row */}
               <div className="flex flex-row gap-2 mb-4">
@@ -251,8 +295,11 @@ export default function Navbar() {
                   value={order}
                   onChange={handleOrderType}
                   className={`p-2 border rounded font-serif
-                    ${theme === "light" ? "border-gray-300 text-orange-500 bg-white"
-                      : "border-gray-600 text-orange-300 bg-gray-800"}`}
+                    ${
+                      theme === "light"
+                        ? "border-gray-300 text-orange-500 bg-white"
+                        : "border-gray-600 text-orange-300 bg-gray-800"
+                    }`}
                 >
                   <option disabled>Sort by</option>
                   <option>Price: Low to High</option>
@@ -263,8 +310,11 @@ export default function Navbar() {
                   onChange={handleCategoryType}
                   defaultValue=""
                   className={`p-3 border rounded font-serif
-                    ${theme === "light" ? "border-gray-300 text-orange-500 bg-white"
-                      : "border-gray-600 text-orange-300 bg-gray-800"}`}
+                    ${
+                      theme === "light"
+                        ? "border-gray-300 text-orange-500 bg-white"
+                        : "border-gray-600 text-orange-300 bg-gray-800"
+                    }`}
                 >
                   <option value={selectedCategory} disabled>
                     Category
@@ -286,8 +336,11 @@ export default function Navbar() {
                       href={`/products/${product.slug}`}
                       key={product.id}
                       className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 border
-                        ${theme === "light" ? "bg-gray-100 border-gray-300 text-black"
-                          : "bg-gray-800 border-gray-700 text-white"}`}
+                        ${
+                          theme === "light"
+                            ? "bg-gray-100 border-gray-300 text-black"
+                            : "bg-gray-800 border-gray-700 text-white"
+                        }`}
                     >
                       <img
                         src={product.image}

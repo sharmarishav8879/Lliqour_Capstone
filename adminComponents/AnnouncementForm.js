@@ -4,8 +4,11 @@ import { db } from "@/app/auth/_util/firebase";
 import { addDoc, collection } from "firebase/firestore";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useTheme } from "@/components/ThemeToggle";
 
 export default function AnnouncementForm() {
+  const { theme } = useTheme();
+
   const [formData, setFormData] = useState({
     title: "",
     message: "",
@@ -38,12 +41,46 @@ export default function AnnouncementForm() {
     }
   };
 
+  const containerBase = `w-full max-w-md mt-20 rounded-2xl shadow-xl p-8 flex flex-col gap-5 transition-all duration-300 hover:shadow-2xl 
+    `;
+  const containerTheme =
+    theme === "light"
+      ? "bg-gray-50 border border-gray-200 text-gray-900"
+      : "bg-gray-900 border border-gray-700 text-gray-100";
+
+  const inputBase =
+    "rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400";
+  const inputTheme =
+    theme === "light"
+      ? "border border-gray-300 bg-gray-50 text-gray-900"
+      : "border border-gray-700 bg-gray-800 text-gray-100 placeholder-gray-500";
+
+  const smallInputBase = "rounded-lg p-2";
+  const smallInputTheme =
+    theme === "light"
+      ? "border border-gray-300 bg-gray-50 text-gray-950"
+      : "border border-gray-700 bg-gray-800 text-gray-100";
+
+  const labelTheme = theme === "light" ? "text-gray-950" : "text-gray-200";
+
+  const paragraphTheme = theme === "light" ? "text-gray-500" : "text-gray-300";
+
+  const loadingBtn =
+    theme === "light"
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-gray-600 cursor-not-allowed";
+
   return (
-    <div className="w-full max-w-md mt-20 bg-gray-50 border border-gray-200 rounded-2xl shadow-xl p-8 flex flex-col gap-5 transition-all duration-300 hover:shadow-2xl">
-      <h2 className="text-3xl font-bold text-center text-orange-600">
+    <div className={`${containerBase} ${containerTheme}`}>
+      <h2
+        className={`text-3xl font-bold text-center ${
+          theme === "light" ? "text-orange-600" : "text-orange-400"
+        }`}
+      >
         Add Announcement
       </h2>
-      <p className="text-gray-500 text-center mb-2">
+
+      <p className={`${paragraphTheme} text-center mb-2`}>
         Send a message or deal update to all users 📢
       </p>
 
@@ -54,7 +91,7 @@ export default function AnnouncementForm() {
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           required
-          className="border border-gray-300 rounded-xl p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400"
+          className={`${inputBase} ${inputTheme}`}
         />
 
         <textarea
@@ -65,7 +102,7 @@ export default function AnnouncementForm() {
           }
           required
           rows={5}
-          className="border border-gray-300 rounded-xl p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400 resize-none"
+          className={`${inputBase} ${inputTheme} resize-none`}
         ></textarea>
 
         <input
@@ -75,13 +112,13 @@ export default function AnnouncementForm() {
             setFormData({ ...formData, expiryDate: e.target.value })
           }
           required
-          className="border rounded-lg p-2 bg-gray-50 text-gray-950 border-gray-300"
+          className={`${smallInputBase} ${smallInputTheme}`}
         />
 
-        <label className="text-gray-950">Select Announcement Type</label>
+        <label className={labelTheme}>Select Announcement Type</label>
         <select
           value={formData.type}
-          className="border rounded-lg p-2 bg-gray-50 text-gray-950 border-gray-300"
+          className={`${smallInputBase} ${smallInputTheme}`}
           onChange={(e) =>
             setFormData({ ...formData, type: e.target.value.toLowerCase() })
           }
@@ -96,11 +133,11 @@ export default function AnnouncementForm() {
         <button
           type="submit"
           disabled={loading}
-          className={`px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+          className={
             loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500"
-          }`}
+              ? `px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all duration-300 transform active:scale-95 ${loadingBtn}`
+              : "px-6 py-3 rounded-xl font-semibold text-white shadow-md bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
+          }
         >
           {loading ? "Sending..." : "Add Announcement"}
         </button>
