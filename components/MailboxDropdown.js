@@ -7,13 +7,15 @@ import {
   query,
 } from "firebase/firestore";
 import { Mail } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function MailboxDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [mailboxMessages, setMailboxMessages] = useState([]);
   const [unReadMessages, setUnReadMessages] = useState(0);
+
+  const prevIds = useRef([]);
 
   useEffect(() => {
     try {
@@ -40,6 +42,16 @@ export default function MailboxDropdown() {
           (msg) => !readIds.includes(msg.id)
         ).length;
         setUnReadMessages(unreadCount);
+        const newMessages = filteredMessages.filter(
+          (msg) => !prevIds.current.includes(msg.id)
+        );
+
+        if (newMessages.length > 0 && prevIds.current.length !== 0) {
+          toast.success("You have new announcements!");
+          new Audio("/sounds/notifications.wav").play();
+        }
+
+        prevIds.current = filteredMessages.map((msg) => msg.id);
       });
       return () => unsubscribe();
     } catch (error) {
