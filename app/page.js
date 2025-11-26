@@ -10,6 +10,7 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "./auth/_util/firebase";
 import RotatingBanner from "@/components/RotatingBanner";
 import OfferCountdown from "@/components/OfferCountdown";
+import FoodPairing from "@/components/FoodPairing";
 
 function ProductCard({ product, className = "" }) {
   const { theme } = useTheme();
@@ -234,6 +235,10 @@ export default function Home() {
         >
           Catalogue
         </h2>
+
+        <div>
+          <FoodPairing />
+        </div>
 
         <nav className="flex flex-wrap justify-center gap-4 relative z-10">
           {categories.map((category) => (
