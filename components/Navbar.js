@@ -202,7 +202,7 @@ export default function Navbar() {
 
         {/* search dropdown */}
         {showSearch && (
-          <div className="relative mb-4">
+          <div className="relative mb-4 z-60">
             <div
               className={`absolute right-0 top-0 mt-0 flex items-center gap-3 border rounded-2xl p-2 w-[320px] shadow-lg font-serif
                 ${theme === "light" ? "bg-white border-gray-300 text-black" : "bg-gray-800 border-gray-600 text-white"}`}
