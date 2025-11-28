@@ -251,7 +251,7 @@ export default function Profile() {
             </div>
             <div className="flex flex-col items-end">
               <button
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-4xl transition duration-300"
+                className="px-6 py-2.5 rounded-full font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
                 onClick={handleSignOut}
               >
                 Sign Out
@@ -338,7 +338,7 @@ export default function Profile() {
             
             {/* Plan Event Button */}
             <button
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-4xl transition duration-300"
+                className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
                 onClick={() => router.push("/party-planner")}
               >
                 Plan an Event

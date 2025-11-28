@@ -71,77 +71,81 @@ export default function AnnouncementForm() {
       : "bg-gray-600 cursor-not-allowed";
 
   return (
-    <div className={`${containerBase} ${containerTheme}`}>
-      <h2
-        className={`text-3xl font-bold text-center ${
-          theme === "light" ? "text-orange-600" : "text-orange-400"
-        }`}
-      >
-        Add Announcement
-      </h2>
-
-      <p className={`${paragraphTheme} text-center mb-2`}>
-        Send a message or deal update to all users 📢
-      </p>
-
-      <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-          className={`${inputBase} ${inputTheme}`}
-        />
-
-        <textarea
-          placeholder="Message"
-          value={formData.message}
-          onChange={(e) =>
-            setFormData({ ...formData, message: e.target.value })
-          }
-          required
-          rows={5}
-          className={`${inputBase} ${inputTheme} resize-none`}
-        ></textarea>
-
-        <input
-          type="date"
-          value={formData.expiryDate || ""}
-          onChange={(e) =>
-            setFormData({ ...formData, expiryDate: e.target.value })
-          }
-          required
-          className={`${smallInputBase} ${smallInputTheme}`}
-        />
-
-        <label className={labelTheme}>Select Announcement Type</label>
-        <select
-          value={formData.type}
-          className={`${smallInputBase} ${smallInputTheme}`}
-          onChange={(e) =>
-            setFormData({ ...formData, type: e.target.value.toLowerCase() })
-          }
+    <main>
+      <div className={`${containerBase} ${containerTheme}`}>
+        <h2
+          className={`text-3xl font-bold text-center ${
+            theme === "light" ? "text-orange-600" : "text-orange-400"
+          }`}
         >
-          <option value="" disabled={formData.type !== ""}>
-            Select Type
-          </option>
-          <option value="banner">Banner</option>
-          <option value="announcement">Announcement</option>
-        </select>
+          Add Announcement
+        </h2>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className={
-            loading
-              ? `px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all duration-300 transform active:scale-95 ${loadingBtn}`
-              : "px-6 py-3 rounded-xl font-semibold text-white shadow-md bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
-          }
-        >
-          {loading ? "Sending..." : "Add Announcement"}
-        </button>
-      </form>
-    </div>
+        <p className={`${paragraphTheme} text-center mb-2`}>
+          Send a message or deal update to all users.
+        </p>
+
+        <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="Title"
+            value={formData.title}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
+            required
+            className={`${inputBase} ${inputTheme}`}
+          />
+
+          <textarea
+            placeholder="Message"
+            value={formData.message}
+            onChange={(e) =>
+              setFormData({ ...formData, message: e.target.value })
+            }
+            required
+            rows={5}
+            className={`${inputBase} ${inputTheme} resize-none`}
+          ></textarea>
+
+          <input
+            type="date"
+            value={formData.expiryDate || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, expiryDate: e.target.value })
+            }
+            required
+            className={`${smallInputBase} ${smallInputTheme}`}
+          />
+
+          <label className={labelTheme}>Select Announcement Type</label>
+          <select
+            value={formData.type}
+            className={`${smallInputBase} ${smallInputTheme}`}
+            onChange={(e) =>
+              setFormData({ ...formData, type: e.target.value.toLowerCase() })
+            }
+          >
+            <option value="" disabled={formData.type !== ""}>
+              Select Type
+            </option>
+            <option value="banner">Banner</option>
+            <option value="announcement">Announcement</option>
+          </select>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={
+              loading
+                ? `px-6 py-3 rounded-xl font-semibold text-white shadow-md transition-all duration-300 transform active:scale-95 ${loadingBtn}`
+                : "px-6 py-3 rounded-xl font-semibold text-white shadow-md bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
+            }
+          >
+            {loading ? "Sending..." : "Add Announcement"}
+          </button>
+        </form>
+      </div>
+    </main>
   );
 }
