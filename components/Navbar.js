@@ -279,7 +279,7 @@ export default function Navbar() {
             onClick={() => setFilter("")}
             className="fixed inset-0 top-[72px] bg-black/40 z-40"
           />
-          <div className="fixed inset-x-0 top-[92px] z-50">
+          <div className="fixed inset-x-0 top-[92px] z-50 max-h-[75vh] overflow-y-auto">
             <div
               onClick={(e) => e.stopPropagation()}
               className={`max-w-6xl mx-auto rounded-2xl shadow-lg p-6 font-serif
