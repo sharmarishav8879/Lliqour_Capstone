@@ -7,13 +7,15 @@ import {
   query,
 } from "firebase/firestore";
 import { Mail } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function MailboxDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [mailboxMessages, setMailboxMessages] = useState([]);
   const [unReadMessages, setUnReadMessages] = useState(0);
+
+  const prevIds = useRef([]);
 
   useEffect(() => {
     try {
@@ -27,17 +29,31 @@ export default function MailboxDropdown() {
           id: doc.id,
           ...doc.data(),
         }));
-        setMailboxMessages(messages);
+
+        const filteredMessages = messages.filter(
+          (msg) => msg.type === "announcement"
+        );
+        setMailboxMessages(filteredMessages);
 
         const readIds = JSON.parse(
           localStorage.getItem("readAnnouncements") || "[]"
         );
-        const unreadCount = messages.filter(
+        const unreadCount = filteredMessages.filter(
           (msg) => !readIds.includes(msg.id)
         ).length;
         setUnReadMessages(unreadCount);
-        return () => unsubscribe();
+        const newMessages = filteredMessages.filter(
+          (msg) => !prevIds.current.includes(msg.id)
+        );
+
+        if (newMessages.length > 0 && prevIds.current.length !== 0) {
+          toast.success("You have new announcements!");
+          new Audio("/sounds/notifications.wav").play();
+        }
+
+        prevIds.current = filteredMessages.map((msg) => msg.id);
       });
+      return () => unsubscribe();
     } catch (error) {
       console.error("Error fetching mailbox messages: ", error);
       toast.error("Failed to load mailbox messages.");
@@ -61,9 +77,7 @@ export default function MailboxDropdown() {
       >
         <Mail className="w-7 h-7 text-gray-900" />
         {unReadMessages > 0 && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full">
-            {unReadMessages.length}
-          </span>
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full"></span>
         )}
       </button>
 

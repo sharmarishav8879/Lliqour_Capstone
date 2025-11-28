@@ -19,10 +19,10 @@ export default function SearchFilter() {
 
   return (
     <main>
-      <h1 className="text-4xl font-bold mt-30 text-orange-500 font-serif flex justify-center">
+      <h1 className=" text-4xl font-bold mt-30 text-orange-500 font-serif flex justify-center">
         Search Products
       </h1>
-      <div className="flex flex-col items-center justify-center font-serif p-6">
+      <div className="flex flex-col items-center justify-center font-serif ">
         <input
           type="text"
           placeholder="Search products..."
