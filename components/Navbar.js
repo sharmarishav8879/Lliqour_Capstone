@@ -167,9 +167,6 @@ export default function Navbar() {
                 <li>
                   <Link href="/contactUs">Contact Us</Link>
                 </li>
-                <li>
-                  <Link href="/party-planner">Party Planner</Link>
-                </li>
               </>
             )}
           </ul>

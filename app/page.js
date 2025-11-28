@@ -182,7 +182,7 @@ export default function Home() {
           <RotatingBanner banner={banner} />
         </div>
       )}
-      <section className="relative flex items-center h-[70vh]">
+      <section className="relative flex items-center h-[50vh]">
         <div className="absolute inset-0 -z-10">
           <Image
             src="/beerHeader.png"

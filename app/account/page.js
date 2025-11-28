@@ -36,6 +36,9 @@ export default function Profile() {
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
   const [showProductForm, setShowProductForm] = useState(false);
   const [tickets, setTickets] = useState([]);
+  
+  //order history not set up yet
+  const [orderHistory, setOrderHistory] = useState([]);
   const { toggleMode, theme } = useTheme();
 
   const handleSignOut = async () => {
@@ -220,7 +223,7 @@ export default function Profile() {
     <main
       className={`${
         theme === "light" ? "bg-white" : "bg-gray-900"
-      } min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif`}
+      } min-h-screen flex flex-col items-center justify-start px-4 pt-30 font-serif`}
     >
       <div
         className={`${
@@ -312,6 +315,35 @@ export default function Profile() {
                 />
               </Link>
             ))}
+
+            {/* Order History Section Placeholder */}
+            <h2
+              className={`text-2xl font-semibold border-b pb-2 ${
+                theme === "light"
+                  ? "text-black border-black"
+                  : "text-white border-gray-600"
+              }`}
+            >
+              Order History
+            </h2>
+            
+            {/* Placeholder for order history items */}
+            {orderHistory.length === 0 && (
+              <p
+                className={`${theme === "light" ? "text-black" : "text-white"}`}
+              >
+                You have no Orders yet.
+              </p>
+            )}
+            
+            {/* Plan Event Button */}
+            <button
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-4xl transition duration-300"
+                onClick={() => router.push("/party-planner")}
+              >
+                Plan an Event
+              </button>
+
           </div>
         )}
 
