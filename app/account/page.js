@@ -36,7 +36,7 @@ export default function Profile() {
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
   const [showProductForm, setShowProductForm] = useState(false);
   const [tickets, setTickets] = useState([]);
-  const { theme } = useTheme();
+  const { toggleMode, theme } = useTheme();
 
   const handleSignOut = async () => {
     try {
@@ -252,6 +252,18 @@ export default function Profile() {
                 onClick={handleSignOut}
               >
                 Sign Out
+              </button>
+              <button
+                onClick={toggleMode}
+                aria-label="Toggle Theme"
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all mt-2
+                ${theme === "light" ? "bg-gray-300" : "bg-orange-500"}`}
+                title="Toggle light/dark"
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform
+                  ${theme === "light" ? "translate-x-1" : "translate-x-6"}`}
+                />
               </button>
               <button
                 onClick={() => router.push("/account/settings")}
