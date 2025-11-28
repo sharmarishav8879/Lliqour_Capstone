@@ -5,6 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { getAllProducts } from "@/lib/products";
 import { useTheme } from "@/components/ThemeToggle";
+import toast from "react-hot-toast";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { db } from "./auth/_util/firebase";
+import RotatingBanner from "@/components/RotatingBanner";
+import OfferCountdown from "@/components/OfferCountdown";
 
 function ProductCard({ product, className = "" }) {
   const { theme } = useTheme();
@@ -77,6 +82,8 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState("Whisky");
   const [offerProducts, setOfferProducts] = useState([]);
   const { theme } = useTheme();
+  const [banner, setBanner] = useState([] || null);
+  const [expiryDate, setExpiryDate] = useState("");
 
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
 
@@ -96,6 +103,27 @@ export default function Home() {
     };
 
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      if (!banner) {
+        toast.error("No banner found");
+        return;
+      }
+      try {
+        const querySnapShot = await getDocs(collection(db, "announcements"));
+        const allBanners = querySnapShot.docs.map((doc) => doc.data());
+        const filterBanner = allBanners.filter((a) => a.type === "banner");
+        const filterExpiryDate = allBanners.find((a) => a.expiryDate);
+        setExpiryDate(filterExpiryDate ? filterExpiryDate.expiryDate : null);
+        setBanner(filterBanner);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to fetch banners");
+      }
+    };
+    fetchBanner();
   }, []);
 
   useEffect(() => {
@@ -149,6 +177,11 @@ export default function Home() {
 
   return (
     <main className="scroll-smooth font-serif">
+      {banner.length > 0 && (
+        <div className="absolute top-25 left-15 transform -translate-x-1/2 z-50 w-30 shadow-lg rounded-lg overflow-hidden">
+          <RotatingBanner banner={banner} />
+        </div>
+      )}
       <section className="relative flex items-center h-[70vh]">
         <div className="absolute inset-0 -z-10">
           <Image
@@ -180,6 +213,7 @@ export default function Home() {
           <p className="mt-2 text-xl md:text-2xl text-yellow-100 font-semibold">
             Limited Time Only!
           </p>
+          {expiryDate && <OfferCountdown expiryDate={expiryDate} />}
         </div>
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
           {offerProducts.map((product) => (
