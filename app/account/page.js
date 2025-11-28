@@ -36,7 +36,10 @@ export default function Profile() {
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
   const [showProductForm, setShowProductForm] = useState(false);
   const [tickets, setTickets] = useState([]);
-  const { theme } = useTheme();
+  
+  //order history not set up yet
+  const [orderHistory, setOrderHistory] = useState([]);
+  const { toggleMode, theme } = useTheme();
 
   const handleSignOut = async () => {
     try {
@@ -220,7 +223,7 @@ export default function Profile() {
     <main
       className={`${
         theme === "light" ? "bg-white" : "bg-gray-900"
-      } min-h-screen flex flex-col items-center justify-start px-4 pt-40 font-serif`}
+      } min-h-screen flex flex-col items-center justify-start px-4 pt-30 font-serif`}
     >
       <div
         className={`${
@@ -248,10 +251,22 @@ export default function Profile() {
             </div>
             <div className="flex flex-col items-end">
               <button
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-4xl transition duration-300"
+                className="px-6 py-2.5 rounded-full font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
                 onClick={handleSignOut}
               >
                 Sign Out
+              </button>
+              <button
+                onClick={toggleMode}
+                aria-label="Toggle Theme"
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all mt-2
+                ${theme === "light" ? "bg-gray-300" : "bg-orange-500"}`}
+                title="Toggle light/dark"
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform
+                  ${theme === "light" ? "translate-x-1" : "translate-x-6"}`}
+                />
               </button>
               <button
                 onClick={() => router.push("/account/settings")}
@@ -300,6 +315,35 @@ export default function Profile() {
                 />
               </Link>
             ))}
+
+            {/* Order History Section Placeholder */}
+            <h2
+              className={`text-2xl font-semibold border-b pb-2 ${
+                theme === "light"
+                  ? "text-black border-black"
+                  : "text-white border-gray-600"
+              }`}
+            >
+              Order History
+            </h2>
+            
+            {/* Placeholder for order history items */}
+            {orderHistory.length === 0 && (
+              <p
+                className={`${theme === "light" ? "text-black" : "text-white"}`}
+              >
+                You have no Orders yet.
+              </p>
+            )}
+            
+            {/* Plan Event Button */}
+            <button
+                className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                onClick={() => router.push("/party-planner")}
+              >
+                Plan an Event
+              </button>
+
           </div>
         )}
 

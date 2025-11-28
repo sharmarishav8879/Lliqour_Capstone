@@ -90,7 +90,7 @@ export default function AccountSettings() {
             <div>
               <button
                 onClick={handleDone}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-4xl transition duration-300 mb-10"
+                className="px-6 py-2.5 rounded-full font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 Done
               </button>
@@ -109,14 +109,14 @@ export default function AccountSettings() {
 
           <button
             onClick={handleChangePassword}
-            className="p-4 bg-orange-500 hover:bg-orange-600 text-white rounded-4xl shadow-sm px-5 text-left"
+            className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
           >
             Change Password
           </button>
 
           <button
             onClick={handleManagePayment}
-            className="p-4 bg-orange-500 hover:bg-orange-600 text-white rounded-4xl shadow-sm px-5 text-left"
+            className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
           >
             Manage Payment Method
           </button>

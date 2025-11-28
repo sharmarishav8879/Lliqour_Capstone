@@ -73,9 +73,13 @@ export default function MailboxDropdown() {
           setIsOpen(!isOpen);
           if (!isOpen) markAllAsRead();
         }}
-        className="relative p-2"
+        className="relative inline-flex items-center justify-center mt-2.5 ml-4"
       >
-        <Mail className="w-7 h-7 text-gray-900" />
+        <Mail 
+          className="w-7 h-7 text-gray-900" 
+          size={26}
+          strokeWidth={1.5}
+        />
         {unReadMessages > 0 && (
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full"></span>
         )}
