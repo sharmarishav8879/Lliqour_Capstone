@@ -190,7 +190,7 @@ export default function Home() {
           <RotatingBanner banner={banner} />
         </div>
       )}
-      <section className="relative flex items-center h-[70vh]">
+      <section className="relative flex items-center h-[50vh]">
         <div className="absolute inset-0 -z-10">
           <Image
             src="/beerHeader.png"
@@ -266,7 +266,7 @@ export default function Home() {
               className={`px-6 py-2 rounded-full font-semibold transition
             ${
               activeCategory === category
-                ? "bg-orange-500 text-white shadow-lg"
+                ? "px-6 py-2.5 rounded-full font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
                 : theme === "light"
                 ? "bg-gray-200 text-black hover:bg-gray-300"
                 : "bg-gray-700 text-white hover:bg-gray-600"

@@ -167,51 +167,38 @@ export default function Navbar() {
                 <li>
                   <Link href="/contactUs">Contact Us</Link>
                 </li>
-                <li>
-                  <Link href="/party-planner">Party Planner</Link>
-                </li>
               </>
             )}
           </ul>
 
           {/* right side controls */}
-          <div className="flex items-center gap-5 text-3xl">
+          <div className="flex items-center text-3xl">
             {/* search */}
             <button
               onClick={() => setShowSearch((v) => !v)}
-              className="focus:outline-none "
+              className="focus:outline-none"
               aria-label="Toggle Search"
               title="Search"
             >
               <HiOutlineSearch
                 className={theme === "light" ? "text-black" : "text-white"}
+                size={26}
+                strokeWidth={1.5}
               />
             </button>
 
             {/* account */}
             <Link href="/account" aria-label="Account" title="Account">
               <HiOutlineUser
-                className={theme === "light" ? "text-black" : "text-white"}
+                className={`${theme === "light" ? "text-black" : "text-white"} ml-4`}
+                size={26}
+                strokeWidth={1.5}
               />
             </Link>
 
             {/* cart + mailbox */}
             <CartButton />
             <MailboxDropdown />
-
-            {/* theme toggle */}
-            <button
-              onClick={toggleMode}
-              aria-label="Toggle Theme"
-              className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all
-                ${theme === "light" ? "bg-gray-300" : "bg-orange-500"}`}
-              title="Toggle light/dark"
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform
-                  ${theme === "light" ? "translate-x-1" : "translate-x-6"}`}
-              />
-            </button>
 
             {/* admin preview toggle (always visible for admins) */}
             {role === "admin" && (
@@ -240,7 +227,7 @@ export default function Navbar() {
 
         {/* search dropdown */}
         {showSearch && (
-          <div className="relative mb-4">
+          <div className="relative mb-4 z-60">
             <div
               className={`absolute right-0 top-0 mt-0 flex items-center gap-3 border rounded-2xl p-2 w-[320px] shadow-lg font-serif
                 ${
@@ -279,7 +266,7 @@ export default function Navbar() {
             onClick={() => setFilter("")}
             className="fixed inset-0 top-[72px] bg-black/40 z-40"
           />
-          <div className="fixed inset-x-0 top-[92px] z-50">
+          <div className="fixed inset-x-0 top-[92px] z-50 max-h-[75vh] overflow-y-auto">
             <div
               onClick={(e) => e.stopPropagation()}
               className={`max-w-6xl mx-auto rounded-2xl shadow-lg p-6 font-serif
