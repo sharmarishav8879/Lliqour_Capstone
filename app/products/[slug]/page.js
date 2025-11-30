@@ -1,8 +1,8 @@
-import Link from "next/link";
-import AddToCartClient from "./AddToCartClient";
+// app/products/[slug]/page.js
 import { getProductBySlug } from "@/lib/products";
+import ProductDetailClient from "@/components/ProductDetailClient";
 
-export default async function ProductDetail({ params }) {
+export default async function ProductDetailPage({ params }) {
   const { slug } = params;
 
   const productDoc = await getProductBySlug(slug);
@@ -30,53 +30,5 @@ export default async function ProductDetail({ params }) {
     createdAt: productDoc.createdAt?.toDate?.()?.toISOString() || null,
   };
 
-  return (
-    <main className="bg-white min-h-screen pt-40 font-serif flex flex-col items-center text-black">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-        <div>
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-[420px] object-cover rounded-xl"
-          />
-        </div>
-
-        <div>
-          <h1 className="text-3xl font-extrabold">{product.name}</h1>
-          <div className="mt-2 text-2xl font-extrabold">
-            ${product.price.toFixed(2)}
-          </div>
-
-          {product.category && (
-            <ul className="mt-3 space-y-1 leading-relaxed">
-              {product.category && (
-                <li>
-                  <strong>Category:</strong> {product.category}
-                </li>
-              )}
-              {product.origin && (
-                <li>
-                  <strong>Origin:</strong> {product.origin}
-                </li>
-              )}
-              {product.abv && (
-                <li>
-                  <strong>ABV:</strong> {product.abv}
-                </li>
-              )}
-              {product.size && (
-                <li>
-                  <strong>Size:</strong> {product.size}
-                </li>
-              )}
-            </ul>
-          )}
-
-          {product.description && <p className="mt-3">{product.description}</p>}
-
-          <AddToCartClient product={product} />
-        </div>
-      </div>
-    </main>
-  );
+  return <ProductDetailClient product={product} />;
 }

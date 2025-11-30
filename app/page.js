@@ -11,6 +11,7 @@ import { db } from "./auth/_util/firebase";
 import RotatingBanner from "@/components/RotatingBanner";
 import OfferCountdown from "@/components/OfferCountdown";
 import FoodPairing from "@/components/FoodPairing";
+import RecentlyViewed from "@/components/RecentlyViewed";
 
 function ProductCard({ product, className = "" }) {
   const { theme } = useTheme();
@@ -241,6 +242,7 @@ export default function Home() {
         >
           Catalogue
         </h2>
+        <RecentlyViewed />
         <div>
           <h2
             className={`text-4xl font-bold mb-12 ${
