@@ -1,6 +1,6 @@
-import Link from "next/link";
-import AddToCartClient from "./AddToCartClient";
+// app/products/[slug]/page.js
 import { getProductBySlug } from "@/lib/products";
+import ProductDetailClient from "@/components/ProductDetailClient";
 
 //Full Star Icon
 import { FaStar } from "react-icons/fa";

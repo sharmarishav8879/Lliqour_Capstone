@@ -1,0 +1,74 @@
+
+{
+  "red_wine": [
+    "Grilled Steak",
+    "Lamb Chops",
+    "Aged Cheddar",
+    "Mushroom Risotto",
+    "Dark Chocolate"
+  ],
+  "white_wine": [
+    "Grilled Fish",
+    "Roast Chicken",
+    "Goat Cheese",
+    "Pasta with Cream Sauce",
+    "Fresh Salads"
+  ],
+  "rum": [
+    "Caribbean BBQ",
+    "Pineapple Dishes",
+    "Banana Desserts",
+    "Coconut Shrimp",
+    "Grilled Pork"
+  ],
+  "whiskey": [
+    "Smoked Brisket",
+    "BBQ Ribs",
+    "Dark Chocolate",
+    "Grilled Sausages",
+    "Hard Cheeses"
+  ],
+  "scotch": [
+    "Smoked Salmon",
+    "Oysters",
+    "Dark Chocolate",
+    "Stilton Cheese",
+    "Roast Beef"
+  ],
+ 
+  "vodka": [
+    "Caviar",
+    "Pickled Vegetables",
+    "Seafood",
+    "Light Salads",
+    "Creamy Pasta"
+  ],
+  "tequila": [
+    "Tacos",
+    "Guacamole",
+    "Ceviche",
+    "Grilled Shrimp",
+    "Spicy Chicken"
+  ],
+  "champagne": [
+    "Oysters",
+    "Sushi",
+    "Strawberries",
+    "Soft Cheeses",
+    "Fried Chicken"
+  ],
+  "cognac": [
+    "Duck Breast",
+    "Dark Chocolate",
+    "Blue Cheese",
+    "Roasted Nuts",
+    "Caramel Desserts"
+  ],
+  "gin": [
+    "Grilled Salmon",
+    "Pineapple Dishes",
+    "Cocktails",
+    "Light Salads",
+    "Creamy Pasta"
+  ]
+}
