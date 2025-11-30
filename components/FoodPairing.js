@@ -11,8 +11,11 @@ export default function FoodPairing() {
     });
   };
   return (
-    <div>
-      <select onChange={handleFoodPairingChange}>
+    <div className="p-4 border rounded-lg shadow-md w-full max-w-md">
+      <select
+        className="w-full p-2 border rounded-md mb-4 bg-gradient-to-r from-orange-400 to-orange-600 text-gray-950 font-serif"
+        onChange={handleFoodPairingChange}
+      >
         <option value="red_wine">Red Wine</option>
         <option value="white_wine">White Wine</option>
         <option value="rum">Rum</option>
