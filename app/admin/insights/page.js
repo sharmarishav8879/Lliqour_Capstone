@@ -236,17 +236,23 @@ export default function AdminInsights() {
     return [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
   }, [orders]);
 
-  /* ----- THEME TOKENS (Orange/White light, dark blue/grey dark) ----- */
-  const lightPanel = "bg-white text-neutral-900 border border-orange-200";
-  const lightHeader = "bg-orange-50 text-orange-900 border-b border-orange-200";
-  const lightZebra = ["", "bg-orange-50/40"];
+  /* ----- THEME TOKENS ----- */
+  // Light: white background + dark orange accents
+  const lightPanel =
+    "bg-white text-neutral-900 border border-orange-300";
+  const lightHeader =
+    "bg-orange-50 text-orange-900 border-b border-orange-300";
+  const lightZebra = ["", "bg-orange-50"];
   const lightBtn =
-    "bg-white border border-orange-300 hover:bg-orange-50 text-orange-700";
+    "bg-white border border-orange-400 hover:bg-orange-50 text-orange-700";
   const lightBadge =
-    "text-[12px] px-2 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200";
+    "text-[12px] px-2 py-0.5 rounded bg-orange-100 text-orange-900 border border-orange-300";
 
-  const darkPanel = "bg-[#0f1115] text-neutral-100 border border-neutral-800";
-  const darkHeader = "bg-[#151821] text-neutral-100 border-b border-neutral-800";
+  // Dark: keep existing dark blue/grey look
+  const darkPanel =
+    "bg-[#0f1115] text-neutral-100 border border-neutral-800";
+  const darkHeader =
+    "bg-[#151821] text-neutral-100 border-b border-neutral-800";
   const darkZebra = ["", "bg-[#141820]"];
   const darkBtn =
     "bg-neutral-800 border border-neutral-700 hover:bg-neutral-700/60";
@@ -264,7 +270,7 @@ export default function AdminInsights() {
     <div
       className={`min-h-screen pt-24 pb-10 px-4 sm:px-6 lg:px-8 text-[15px] ${
         theme === "light"
-          ? "bg-[#fff7ed] text-neutral-900"
+          ? "bg-white text-neutral-900"
           : "bg-[#020617] text-neutral-100"
       }`}
     >
