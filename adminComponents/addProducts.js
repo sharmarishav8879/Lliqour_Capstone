@@ -45,11 +45,11 @@ export default function AddProducts({ onClose, onAdded }) {
       };
 
       const addedDoc = await addProductToDB(newProduct);
-      alert("✅ Product added successfully!");
+      alert("Product added successfully!");
       if (onAdded) onAdded(addedDoc);
       onClose();
     } catch (err) {
-      alert(`❌ Failed to add product: ${err.message}`);
+      alert(`Failed to add product: ${err.message}`);
       console.error(err);
     }
   };

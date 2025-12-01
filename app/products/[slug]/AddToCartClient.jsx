@@ -41,9 +41,9 @@ export default function AddToCartClient({ product }) {
 
         <button
           onClick={handleAdd}
-          className="px-4 py-2 rounded-md border border-neutral-700 bg-blue-600 text-white font-bold"
+          className="px-4 py-2 rounded-md font-medium text-white bg-gradient-to-r from-blue-500 to-blue-400 shadow-md hover:from-blue-600 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
         >
-          Add to cart
+          Add to Cart
         </button>
       </div>
     </main>
