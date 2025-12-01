@@ -11,7 +11,7 @@ export default function AccountSettings() {
   const { user } = useUserAuth();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
-  const { theme } = useTheme();
+  const { toggleMode, theme } = useTheme();
 
   const handleProfilePicClick = () => {
     alert("Profile picture change not implemented yet.");
@@ -87,12 +87,24 @@ export default function AccountSettings() {
               </div>
             </div>
 
-            <div>
+            <div className="flex flex-col items-end">
               <button
                 onClick={handleDone}
                 className="px-6 py-2.5 rounded-full font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 Done
+              </button>
+              <button
+                onClick={toggleMode}
+                aria-label="Toggle Theme"
+                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all mt-2
+                ${theme === "light" ? "bg-gray-300" : "bg-orange-500"}`}
+                title="Toggle light/dark"
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform
+                  ${theme === "light" ? "translate-x-1" : "translate-x-6"}`}
+                />
               </button>
             </div>
           </div>
