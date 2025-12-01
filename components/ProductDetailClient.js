@@ -9,7 +9,7 @@ export default function ProductDetailClient({ product }) {
 
   useEffect(() => {
     if (product?.id) {
-      addItem(product.id); // save to localStorage
+      addItem(product.id);
     }
   }, [product?.id]);
 

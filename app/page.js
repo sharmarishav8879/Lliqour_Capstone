@@ -242,7 +242,7 @@ export default function Home() {
         >
           Catalogue
         </h2>
-        <RecentlyViewed />
+
         <div>
           <h2
             className={`text-4xl font-bold mb-12 ${
