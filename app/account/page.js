@@ -14,13 +14,8 @@ import { db } from "../auth/_util/firebase";
 import { HiOutlineCog, HiOutlineSearch } from "react-icons/hi";
 import { FiPlus } from "react-icons/fi";
 import { FaRegTrashAlt } from "react-icons/fa";
-import { MdModeEditOutline } from "react-icons/md";
-import Link from "next/link";
-import { getAllProducts } from "@/lib/products";
-import AddProducts from "../../adminComponents/addProducts";
-import { deleteProduct } from "../../adminComponents/deleteProducts";
-import UpdateProducts from "../../adminComponents/updateProducts";
 import { useTheme } from "@/components/ThemeToggle";
+import { deleteProduct } from "../../adminComponents/deleteProducts";
 
 export default function Profile() {
   const { user, loading: authLoading, firebaseSignOut } = useUserAuth();
@@ -36,7 +31,9 @@ export default function Profile() {
   const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
   const [showProductForm, setShowProductForm] = useState(false);
   const [tickets, setTickets] = useState([]);
-  
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [lifetimeLoyaltyPoints, setLifetimeLoyaltyPoints] = useState(0);
+
   //order history not set up yet
   const [orderHistory, setOrderHistory] = useState([]);
   const { toggleMode, theme } = useTheme();
@@ -66,6 +63,8 @@ export default function Profile() {
           const userData = userDocSnapshot.data();
           setName(userData.name);
           setRole(userData.role || "user");
+          setLoyaltyPoints(userData.loyaltyPoints || 0);
+          setLifetimeLoyaltyPoints(userData.lifetimeLoyaltyPoints || 0);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -89,22 +88,20 @@ export default function Profile() {
 
     const fetchProducts = async () => {
       try {
-        const products = await getAllProducts();
-        const normalized = (Array.isArray(products) ? products : []).map(
-          (p) => ({
-            id: p.docId || p.id,
-            slug: p.slug || p.docId,
+        const productsRef = collection(db, "products");
+        const snapshot = await getDocs(productsRef);
+        const normalized = snapshot.docs.map((doc) => {
+          const p = doc.data();
+          return {
+            id: doc.id,
             name: p.name || "Unnamed Product",
-            category: p.category || "Uncategorized",
-            price: Number(p.price) || 0,
-            abv: p.abv || "",
-            size: p.size || "",
-            origin: p.origin || "",
+            category: p.category || "Other",
+            price: p.price || 0,
             description: p.description || "",
-            discount: Number(p.discount) || 0,
+            stock: p.stock ?? 0,
             image: p.image || p.imageUrl || "/placeholderProduct.jpg",
-          })
-        );
+          };
+        });
         setItems(normalized);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -140,7 +137,7 @@ export default function Profile() {
 
   function ProductCard({
     product,
-    className = "",
+    isAdmin,
     onProductDeleted,
     onProductUpdated,
   }) {
@@ -155,67 +152,196 @@ export default function Profile() {
       try {
         await deleteProduct(product.id);
         if (onProductDeleted) onProductDeleted(product.id);
-        alert(`"${product.name}" deleted successfully!`);
-      } catch (err) {
-        alert(`Failed to delete product: ${err.message}`);
+        alert(`"${product.name}" has been deleted.`);
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        alert("Failed to delete product. Please try again.");
       }
     };
 
     return (
-      <div className={`relative ${className}`}>
-        <Link
-          href={`/products/${product.slug}`}
-          className="block bg-gray-100 border border-gray-300 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
-        >
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-56 object-cover"
-          />
-          <div className="p-4 flex flex-col justify-between h-40">
-            <div className="font-bold text-lg text-black">{product.name}</div>
-            <div className="text-sm text-gray-600 mt-1">
-              {product.size ? `${product.size} • ` : ""}
-              {product.abv ? `${product.abv} • ` : ""}
-              {product.origin || ""}
-            </div>
-            <div className="mt-2 font-extrabold text-gray-900">
-              ${Number(product.price).toFixed(2)}
+      <div className="border rounded-xl p-4 shadow-sm bg-white mb-4">
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex gap-3">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-20 h-20 object-cover rounded-lg"
+            />
+            <div>
+              <h3 className="font-semibold text-lg text-black">
+                {product.name}
+              </h3>
+              <p className="text-sm text-gray-500">{product.category}</p>
+              <p className="mt-1 font-medium text-black">
+                ${Number(product.price).toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Stock:{" "}
+                <span
+                  className={
+                    product.stock <= 10 ? "text-red-500 font-semibold" : ""
+                  }
+                >
+                  {product.stock}
+                </span>
+              </p>
             </div>
           </div>
-        </Link>
-
-        <div className="absolute bottom-4 right-4 flex space-x-2">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setShowUpdateModal(true);
-            }}
-            className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-gray-200 text-gray-800"
-          >
-            <MdModeEditOutline size={20} />
-          </button>
-
-          <button
-            onClick={handleDeleteClick}
-            className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-orange-500 text-white"
-          >
-            <FaRegTrashAlt size={18} />
-          </button>
+          {isAdmin && (
+            <div className="flex flex-col gap-2 items-end">
+              <button
+                className="text-sm px-3 py-1 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                onClick={() => setShowUpdateModal(true)}
+              >
+                Edit
+              </button>
+              <button
+                className="text-sm p-2 rounded-full border border-red-300 text-red-500 hover:bg-red-50 transition"
+                onClick={handleDeleteClick}
+              >
+                <FaRegTrashAlt size={16} />
+              </button>
+            </div>
+          )}
         </div>
-
         {showUpdateModal && (
-          <UpdateProducts
+          <ProductUpdateModal
             product={product}
             onClose={() => setShowUpdateModal(false)}
-            onUpdated={(newProduct) => {
-              setItems((prev) =>
-                prev.map((p) => (p.id === newProduct.id ? newProduct : p))
-              );
-            }}
+            onProductUpdated={onProductUpdated}
           />
         )}
       </div>
+    );
+  }
+
+  function ProductUpdateModal({ product, onClose, onProductUpdated }) {
+    const [formData, setFormData] = useState({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      description: product.description,
+      stock: product.stock,
+    });
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const productRef = doc(db, "products", product.id);
+        await setDoc(
+          productRef,
+          {
+            ...formData,
+            price: Number(formData.price),
+            stock: Number(formData.stock),
+          },
+          { merge: true }
+        );
+        onProductUpdated({
+          ...product,
+          ...formData,
+          price: Number(formData.price),
+          stock: Number(formData.stock),
+        });
+        onClose();
+      } catch (error) {
+        console.error("Error updating product:", error);
+        alert("Failed to update product. Please try again.");
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg">
+          <h2 className="text-xl font-semibold mb-4">Update Product</h2>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Name</label>
+              <input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Category
+              </label>
+              <input
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+                required
+              />
+            </div>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Price</label>
+                <input
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg px-3 py-2"
+                  required
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Stock</label>
+                <input
+                  name="stock"
+                  type="number"
+                  min="0"
+                  value={formData.stock}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg px-3 py-2"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+              >
+                Save changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (authLoading || loading) {
+    return (
+      <main
+        className={`${
+          theme === "light" ? "bg-white" : "bg-gray-900"
+        } min-h-screen flex items-center justify-center`}
+      >
+        <p className={`${theme === "light" ? "text-black" : "text-white"}`}>
+          Loading your account...
+        </p>
+      </main>
     );
   }
 
@@ -282,8 +408,43 @@ export default function Profile() {
           </div>
         )}
 
+        {/* Loyalty section for regular users */}
         {role === "user" && (
           <div className="flex flex-col gap-4 mt-6">
+            <section className="mb-4">
+              <h2
+                className={`text-2xl font-semibold border-b pb-2 ${
+                  theme === "light"
+                    ? "text-black border-black"
+                    : "text-white border-gray-600"
+                }`}
+              >
+                Loyalty Points
+              </h2>
+              <p
+                className={`${
+                  theme === "light" ? "text-black" : "text-white"
+                } mt-3`}
+              >
+                <span className="font-semibold">Available points:</span>{" "}
+                {loyaltyPoints}
+              </p>
+              <p
+                className={`${
+                  theme === "light" ? "text-gray-600" : "text-gray-300"
+                } text-sm mt-1`}
+              >
+                You earn 1 point for every $10 spent on completed orders.
+              </p>
+              <p
+                className={`${
+                  theme === "light" ? "text-gray-600" : "text-gray-300"
+                } text-sm mt-1`}
+              >
+                Lifetime points earned: {lifetimeLoyaltyPoints}
+              </p>
+            </section>
+
             <h2
               className={`text-2xl font-semibold border-b pb-2 ${
                 theme === "light"
@@ -296,29 +457,32 @@ export default function Profile() {
 
             {tickets.length === 0 && (
               <p
-                className={`${theme === "light" ? "text-black" : "text-white"}`}
+                className={`${
+                  theme === "light" ? "text-black" : "text-white"
+                }`}
               >
                 You have no tickets yet.
               </p>
             )}
 
-            {tickets.map((ticket) => (
-              <Link key={ticket.id} href={`/ticketsChat/${ticket.id}`}>
-                <InfoCard
-                  title={ticket.title}
-                  date={
-                    ticket.createdAt?.toDate
-                      ? ticket.createdAt.toDate().toLocaleDateString()
-                      : ""
-                  }
-                  subtitleLabel="Opened on"
-                />
-              </Link>
-            ))}
+            {tickets.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {tickets.map((ticket) => (
+                  <InfoCard
+                    key={ticket.id}
+                    title={ticket.subject || "Support Ticket"}
+                    date={
+                      ticket.createdAt?.toDate
+                        ? ticket.createdAt.toDate().toLocaleString()
+                        : "Unknown date"
+                    }
+                  />
+                ))}
+              </div>
+            )}
 
-            {/* Order History Section Placeholder */}
             <h2
-              className={`text-2xl font-semibold border-b pb-2 ${
+              className={`text-2xl font-semibold border-b pb-2 mt-6 ${
                 theme === "light"
                   ? "text-black border-black"
                   : "text-white border-gray-600"
@@ -326,183 +490,123 @@ export default function Profile() {
             >
               Order History
             </h2>
-            
-            {/* Placeholder for order history items */}
+
             {orderHistory.length === 0 && (
               <p
-                className={`${theme === "light" ? "text-black" : "text-white"}`}
+                className={`${
+                  theme === "light" ? "text-black" : "text-white"
+                }`}
               >
                 You have no Orders yet.
               </p>
             )}
-            
+
             {/* Plan Event Button */}
             <button
-                className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
-                onClick={() => router.push("/party-planner")}
-              >
-                Plan an Event
-              </button>
-
+              className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
+              onClick={() => router.push("/party-planner")}
+            >
+              Plan an Event
+            </button>
           </div>
         )}
 
         {role === "admin" && (
-          <div className="flex flex-col gap-4 mt-6">
-            <div
-              className={`flex items-center justify-between w-full border-b pb-2 ${
-                theme === "light" ? "border-black" : "border-gray-600"
-              }`}
-            >
+          <div className="flex flex-col gap-6 mt-6">
+            <div className="flex items-center justify-between">
               <h2
-                className={`text-2xl font-semibold flex-1 ${
+                className={`text-2xl font-semibold ${
                   theme === "light" ? "text-black" : "text-white"
                 }`}
               >
-                Quick Catalogue
+                Product Management
               </h2>
-
-              <div className="flex items-center gap-1.5">
-                {/* Product Form Toggle */}
-                <div className="relative">
-                  <button
-                    className={`${
-                      theme === "light"
-                        ? "bg-gray-200 text-black"
-                        : "bg-gray-700 text-white"
-                    } w-10 h-10 rounded-full flex items-center justify-center shadow`}
-                    onClick={() => setShowProductForm((prev) => !prev)}
-                  >
-                    <FiPlus size={20} />
-                  </button>
-                  {showProductForm && (
-                    <AddProducts
-                      onClose={() => setShowProductForm(false)}
-                      onAdded={(newProduct) => {
-                        setItems((prev) => [...prev, newProduct]);
-                        setShowProductForm(false);
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Category Dropdown */}
-                <div className="relative">
-                  <button
-                    className={`${
-                      theme === "light"
-                        ? "bg-gray-200 text-black"
-                        : "bg-gray-700 text-white"
-                    } h-10 w-22 px-4 rounded-full font-semibold flex justify-center items-center shadow`}
-                    onClick={() => {
-                      setShowCategoryDropdown((prev) => !prev);
-                      setShowSearch(false);
-                      setShowProductForm(false);
-                    }}
-                  >
-                    {activeCategory || "All"}
-                  </button>
-                  {showCategoryDropdown && (
-                    <div
-                      className={`${
-                        theme === "light"
-                          ? "bg-white text-black"
-                          : "bg-gray-800 text-white"
-                      } absolute mt-2 right-0 w-full font-semibold rounded-lg shadow-lg z-20`}
-                    >
-                      <button
-                        className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
-                        onClick={() => {
-                          setActiveCategory(null);
-                          setShowCategoryDropdown(false);
-                        }}
-                      >
-                        All
-                      </button>
-                      {categories.map((category) => (
-                        <button
-                          key={category}
-                          className="w-full text-center py-2 hover:bg-orange-500 rounded-lg"
-                          onClick={() => {
-                            setActiveCategory(category);
-                            setShowCategoryDropdown(false);
-                          }}
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Search Button & Modal */}
-                <div className="relative">
-                  <button
-                    className={`${
-                      theme === "light"
-                        ? "bg-gray-200 text-black"
-                        : "bg-gray-700 text-white"
-                    } w-10 h-10 rounded-full flex items-center justify-center shadow`}
-                    onClick={() => {
-                      setShowSearch((prev) => !prev);
-                      setShowCategoryDropdown(false);
-                      setShowProductForm(false);
-                    }}
-                  >
-                    <HiOutlineSearch size={20} />
-                  </button>
-                  {showSearch && (
-                    <div
-                      className={`${
-                        theme === "light"
-                          ? "bg-white text-black border-gray-300"
-                          : "bg-gray-800 text-white border-gray-600"
-                      } absolute top-full mt-2 right-0 flex items-center gap-2 border rounded-4xl p-2 w-[150px] shadow-lg font-serif z-20`}
-                    >
-                      <HiOutlineSearch className="text-xl" />
-                      <input
-                        type="text"
-                        placeholder="Search"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border-none outline-none w-full text-lg rounded-md"
-                      />
-                      <div
-                        onClick={() => {
-                          setSearchTerm("");
-                          setShowSearch(false);
-                        }}
-                        className="cursor-pointer text-md pr-2"
-                      >
-                        ✕
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <button
+                className="px-4 py-2 rounded-full bg-orange-500 text-white flex items-center gap-2 hover:bg-orange-600 transition"
+                onClick={() => setShowProductForm(true)}
+              >
+                <FiPlus size={18} />
+                New Product
+              </button>
             </div>
 
-            <div className="w-full max-w-6xl flex flex-col gap-6 mt-4">
-              <div className="flex gap-6 overflow-x-auto py-2 scrollbar-hide">
-                {filteredItems.length > 0 ? (
-                  filteredItems.map((product, index) => (
-                    <ProductCard
-                      key={`${product.id}-${index}`}
-                      product={product}
-                      className="min-w-[220px]"
-                      onProductDeleted={(deletedId) =>
-                        setItems((prev) =>
-                          prev.filter((p) => p.id !== deletedId)
-                        )
-                      }
-                    />
-                  ))
-                ) : (
-                  <p className="text-center text-orange-500 text-lg w-full">
-                    No products found.
-                  </p>
-                )}
+            <div className="flex items-center gap-3 mb-2">
+              <button
+                onClick={() =>
+                  setShowCategoryDropdown((prevState) => !prevState)
+                }
+                className="px-4 py-2 rounded-full border border-gray-300 flex items-center gap-2 text-sm hover:bg-gray-100 transition"
+              >
+                Filter by category
+              </button>
+              <button
+                onClick={() => setShowSearch((prevState) => !prevState)}
+                className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 transition"
+              >
+                <HiOutlineSearch size={18} />
+              </button>
+            </div>
+
+            {showCategoryDropdown && (
+              <div className="flex gap-2 flex-wrap mb-2">
+                <button
+                  className={`px-3 py-1 rounded-full border text-sm ${
+                    activeCategory === null
+                      ? "bg-orange-500 text-white border-orange-500"
+                      : "border-gray-300 text-gray-700"
+                  }`}
+                  onClick={() => setActiveCategory(null)}
+                >
+                  All
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    className={`px-3 py-1 rounded-full border text-sm ${
+                      activeCategory === category
+                        ? "bg-orange-500 text-white border-orange-500"
+                        : "border-gray-300 text-gray-700"
+                    }`}
+                    onClick={() => setActiveCategory(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
               </div>
+            )}
+
+            {showSearch && (
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 mb-2 border rounded-full text-sm"
+              />
+            )}
+
+            <div>
+              {filteredItems.length === 0 ? (
+                <p className="text-gray-500 text-sm">
+                  No products found. Try adjusting filters or search.
+                </p>
+              ) : (
+                filteredItems.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    isAdmin={role === "admin"}
+                    onProductDeleted={(id) =>
+                      setItems((prev) => prev.filter((p) => p.id !== id))
+                    }
+                    onProductUpdated={(newProduct) =>
+                      setItems((prev) =>
+                        prev.map((p) => (p.id === newProduct.id ? newProduct : p))
+                      )
+                    }
+                  />
+                ))
+              )}
             </div>
           </div>
         )}
