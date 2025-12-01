@@ -167,6 +167,12 @@ export default function Navbar() {
                 <li>
                   <Link href="/contactUs">Contact Us</Link>
                 </li>
+                <li>
+                  <Link href="/party-planner">Party Planner</Link>
+                </li>
+                <li>
+                  <Link href="/recently-viewed">Recently Viewed</Link>
+                </li>
               </>
             )}
           </ul>
@@ -190,7 +196,9 @@ export default function Navbar() {
             {/* account */}
             <Link href="/account" aria-label="Account" title="Account">
               <HiOutlineUser
-                className={`${theme === "light" ? "text-black" : "text-white"} ml-4`}
+                className={`${
+                  theme === "light" ? "text-black" : "text-white"
+                } ml-4`}
                 size={26}
                 strokeWidth={1.5}
               />

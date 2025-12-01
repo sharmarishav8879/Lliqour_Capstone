@@ -1,40 +1,43 @@
-" use client";
+"use client";
 
 import { useEffect, useState } from "react";
-import { useRecentlyViewed } from "./hooks/useRecentlyViewed";
-import { getProductsByIds } from "@/lib/products";
+
 import toast from "react-hot-toast";
+import Link from "next/link";
+import { getProductsBySlugs } from "@/lib/products";
+import { useRecentlyViewed } from "./hooks/useRecentlyViewed";
 
 export default function RecentlyViewed() {
   const { items } = useRecentlyViewed();
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (!items || items.length === 0) {
-        setProducts([]);
-        return;
-      }
-
+    const fetchFromLocalStorage = async () => {
       try {
-        const data = await getProductsByIds(items);
+        const stored = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
+        console.log("Local storage Ids:", stored);
+        if (stored.length === 0) {
+          setProducts([]);
+          return;
+        }
+
+        const data = await getProductsBySlugs(stored);
         setProducts(data);
       } catch (error) {
-        console.error("Error fetching recently viewed products:", error);
+        console.error("Error loading recently viewed:", error);
         toast.error("Failed to load recently viewed products");
       }
     };
 
-    fetchProducts();
+    fetchFromLocalStorage();
   }, [items]);
 
-  if (products.length === 0) {
-    return null;
-  }
+  if (products.length === 0) return null;
 
   return (
     <div className="mt-6">
       <h2 className="text-lg font-semibold mb-3">Recently Viewed</h2>
+
       <div className="grid grid-cols-2 gap-4">
         {products.map((p) => (
           <Link
