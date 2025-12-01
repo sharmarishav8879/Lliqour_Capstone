@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { getProductBySlug } from "@/lib/products";
 import AddToCartClient from "./AddToCartClient";
-import AddReview from "@/components/addReview";
+import AddReview, { InfoCard } from "@/components/addReview";
 import { FiPlus } from "react-icons/fi";
 
 export default function ProductDetailClient() {
@@ -16,6 +16,7 @@ export default function ProductDetailClient() {
   const [addReview, setAddReview] = useState(false);
   const [reviews, setReviews] = useState([]);
 
+  // Fetch product data
   useEffect(() => {
     if (!slug) return;
 
@@ -23,6 +24,7 @@ export default function ProductDetailClient() {
       try {
         const product = await getProductBySlug(slug);
         setProductDoc(product);
+        setReviews(product.reviews || []);
       } catch (error) {
         console.error("Error fetching product:", error);
       } finally {
@@ -54,42 +56,19 @@ export default function ProductDetailClient() {
           </div>
 
           <ul className="mt-3 space-y-1 leading-relaxed">
-            {productDoc.category && (
-              <li>
-                <strong>Category:</strong> {productDoc.category}
-              </li>
-            )}
-            {productDoc.origin && (
-              <li>
-                <strong>Origin:</strong> {productDoc.origin}
-              </li>
-            )}
-            {productDoc.abv && (
-              <li>
-                <strong>ABV:</strong> {productDoc.abv}
-              </li>
-            )}
-            {productDoc.size && (
-              <li>
-                <strong>Size:</strong> {productDoc.size}
-              </li>
-            )}
-            {productDoc.discount && (
-              <li>
-                <strong>Discount:</strong> {productDoc.discount}%
-              </li>
-            )}
+            {productDoc.category && <li><strong>Category:</strong> {productDoc.category}</li>}
+            {productDoc.origin && <li><strong>Origin:</strong> {productDoc.origin}</li>}
+            {productDoc.abv && <li><strong>ABV:</strong> {productDoc.abv}</li>}
+            {productDoc.size && <li><strong>Size:</strong> {productDoc.size}</li>}
+            {productDoc.discount && <li><strong>Discount:</strong> {productDoc.discount}%</li>}
             {productDoc.createdAt && (
               <li>
-                <strong>Added:</strong>{" "}
-                {new Date(productDoc.createdAt).toLocaleDateString()}
+                <strong>Added:</strong> {new Date(productDoc.createdAt).toLocaleDateString()}
               </li>
             )}
           </ul>
 
-          {productDoc.description && (
-            <p className="mt-3">{productDoc.description}</p>
-          )}
+          {productDoc.description && <p className="mt-3">{productDoc.description}</p>}
 
           <AddToCartClient product={productDoc} />
         </div>
@@ -111,6 +90,7 @@ export default function ProductDetailClient() {
         {/* AddReview Modal */}
         {addReview && (
           <AddReview
+            productId={productDoc.id}
             onClose={() => setAddReview(false)}
             onAdded={(newReview) => setReviews([newReview, ...reviews])}
           />

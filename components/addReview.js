@@ -1,8 +1,30 @@
 "use client";
+
 import { useState } from "react";
 import { FaStar, FaStarHalf, FaRegStar } from "react-icons/fa";
+import { AddReviewToProduct } from "@/lib/modifyProducts";
 
-export default function AddReview({ onClose }) {
+export const StarRating = ({ rating }) => {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    if (rating >= i) stars.push(<FaStar key={i} className="text-yellow-500" />);
+    else if (rating >= i - 0.5)
+      stars.push(<FaStarHalf key={i} className="text-yellow-500" />);
+    else stars.push(<FaRegStar key={i} className="text-yellow-500" />);
+  }
+  return <div className="flex mt-1">{stars}</div>;
+};
+
+export const InfoCard = ({ title, date, description, starScore }) => (
+  <div className="p-4 bg-white border rounded-4xl shadow-sm px-5 mt-2 mb-2">
+    <p className="font-medium text-black">{title}</p>
+    <StarRating rating={starScore} />
+    <p className="text-sm text-gray-500">{date}</p>
+    {description && <p className="mt-2 text-sm text-gray-700">{description}</p>}
+  </div>
+);
+
+export default function AddReview({ onClose, productId }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -11,13 +33,13 @@ export default function AddReview({ onClose }) {
 
   const [reviews, setReviews] = useState([]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.title.trim()) return alert("Title required");
     if (!formData.description.trim()) return alert("Description required");
-    if (formData.starScore < 1 || formData.starScore > 5)
-      return alert("Star score 1–5");
+    if (formData.starScore < 0.5 || formData.starScore > 5)
+      return alert("Star score must be between 0.5 and 5");
 
     const newReview = {
       id: crypto.randomUUID(),
@@ -27,33 +49,21 @@ export default function AddReview({ onClose }) {
       date: new Date().toISOString().split("T")[0],
     };
 
-    setReviews([newReview, ...reviews]);
+    try {
+      await AddReviewToProduct(productId, newReview);
 
-    setFormData({ title: "", description: "", starScore: 0 });
-  };
+      setReviews([newReview, ...reviews]);
 
-  const StarRating = ({ rating }) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      if (rating >= i)
-        stars.push(<FaStar key={i} className="text-yellow-500" />);
-      else if (rating >= i - 0.5)
-        stars.push(<FaStarHalf key={i} className="text-yellow-500" />);
-      else stars.push(<FaRegStar key={i} className="text-yellow-500" />);
+      setFormData({ title: "", description: "", starScore: 0 });
+
+      onClose();
+      window.location.reload();
+
+    } catch (error) {
+      console.error("Failed to add review:", error);
+      alert("Failed to add review. Try again.");
     }
-    return <div className="flex mt-1">{stars}</div>;
   };
-
-  const InfoCard = ({ title, date, description, starScore }) => (
-    <div className="p-4 bg-white border rounded-4xl shadow-sm px-5 mt-2 mb-2">
-      <p className="font-medium text-black">{title}</p>
-      <StarRating rating={starScore} />
-      <p className="text-sm text-gray-500">{date}</p>
-      {description && (
-        <p className="mt-2 text-sm text-gray-700">{description}</p>
-      )}
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -65,9 +75,7 @@ export default function AddReview({ onClose }) {
             type="text"
             placeholder="Review Title"
             value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="border p-2 rounded-lg"
             required
           />
@@ -75,9 +83,7 @@ export default function AddReview({ onClose }) {
           <textarea
             placeholder="Write your review..."
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="border p-2 rounded-lg"
             required
           />
@@ -86,12 +92,11 @@ export default function AddReview({ onClose }) {
             type="number"
             placeholder="Star Score (1–5)"
             value={formData.starScore}
-            onChange={(e) =>
-              setFormData({ ...formData, starScore: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, starScore: e.target.value })}
             className="border p-2 rounded-lg"
-            min="1"
+            min="0.5"
             max="5"
+            step="0.5"
             required
           />
 
@@ -110,18 +115,6 @@ export default function AddReview({ onClose }) {
             Cancel
           </button>
         </form>
-
-        <div className="mt-4">
-          {reviews.map((r) => (
-            <InfoCard
-              key={r.id}
-              title={r.title}
-              date={r.date}
-              description={r.description}
-              starScore={r.starScore}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
