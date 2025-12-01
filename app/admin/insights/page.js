@@ -195,22 +195,28 @@ export default function AdminInsights() {
     [ordersLive, windowStart]
   );
 
-  /* ----- metrics ----- */
+  /* ----- metrics (with loyalty points) ----- */
   const metrics = useMemo(() => {
     let revenueCents = 0;
     let itemsSold = 0;
+    let pointsEarned = 0;
+
     orders.forEach((o) => {
       const sub = toCents(o.subtotal ?? o.subtotalCents);
       const tax = toCents(o.tax ?? o.taxCents);
       const total = toCents(o.total ?? o.totalCents ?? sub + tax);
       revenueCents += total;
+
       (o.items || []).forEach((it) => {
         itemsSold += Number(it.qty || 0);
       });
+
+      pointsEarned += Number(o.loyaltyPointsEarned || 0);
     });
+
     const ordersCount = orders.length;
     const aov = ordersCount ? revenueCents / ordersCount : 0;
-    return { revenueCents, itemsSold, ordersCount, aov };
+    return { revenueCents, itemsSold, ordersCount, aov, pointsEarned };
   }, [orders]);
 
   const topProducts = useMemo(() => {
@@ -237,7 +243,7 @@ export default function AdminInsights() {
   }, [orders]);
 
   /* ----- THEME TOKENS ----- */
-  // Light: pure white + DARK orange accents
+  // Light: pure white + dark orange accents
   const lightPanel =
     "bg-white text-neutral-900 border border-orange-500";
   const lightHeader =
@@ -380,7 +386,7 @@ export default function AdminInsights() {
         ) : (
           <>
             {/* KPIs */}
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-4 mb-8">
               <KPI
                 label="Revenue"
                 value={money(metrics.revenueCents)}
@@ -399,6 +405,11 @@ export default function AdminInsights() {
               <KPI
                 label="Items Sold"
                 value={metrics.itemsSold}
+                panel={panel}
+              />
+              <KPI
+                label="Loyalty Points Earned"
+                value={metrics.pointsEarned}
                 panel={panel}
               />
             </div>
@@ -464,16 +475,18 @@ export default function AdminInsights() {
                         (n, it) => n + Number(it.qty || 0),
                         0
                       );
+                      const pts = Number(o.loyaltyPointsEarned || 0);
                       return {
                         c: [
                           `#${o.id}`,
                           d ? d.toLocaleString() : "",
                           { r: money(total), mono: true },
                           { r: items },
+                          { r: pts },
                         ],
                       };
                     })}
-                    cols={["Order", "Date", "Total", "Items"]}
+                    cols={["Order", "Date", "Total", "Items", "Points"]}
                   />
                 )}
               </Card>
@@ -558,7 +571,7 @@ function Empty() {
 /* ---------- CSV helpers ---------- */
 function downloadOrdersCSV(orders) {
   const rows = [
-    ["Order ID", "Date", "Method", "Items", "Subtotal", "Tax", "Total"],
+    ["Order ID", "Date", "Method", "Items", "Subtotal", "Tax", "Total", "Loyalty Points"],
     ...orders.map((o) => {
       const sub = toCents(o.subtotal ?? o.subtotalCents);
       const tax = toCents(o.tax ?? o.taxCents);
@@ -566,6 +579,7 @@ function downloadOrdersCSV(orders) {
       const d = toDateFlexible(
         o.createdAt || o.created_at || o.date || o.createdOn
       );
+      const points = Number(o.loyaltyPointsEarned || 0);
       return [
         o.id,
         d ? d.toLocaleString() : "",
@@ -576,6 +590,7 @@ function downloadOrdersCSV(orders) {
         money(sub),
         money(tax),
         money(total),
+        points,
       ];
     }),
   ];
