@@ -425,7 +425,6 @@ function downloadOrdersCSV(orders){
     })
   ];
   const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
-  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
   a.download="insights-orders.csv"; a.click(); URL.revokeObjectURL(a.href);
 }
