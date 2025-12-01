@@ -4,13 +4,25 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartProvider";
 import { db, auth } from "@/app/auth/_util/firebase";
-import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, setDoc, increment } from "firebase/firestore";
 
 const DEMO_ONLY = process.env.NEXT_PUBLIC_DEMO_RECEIPT_ONLY === "1";
 
 function money(cents) {
   return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" })
     .format((cents || 0) / 100);
+}
+function calculateLoyaltyPointsFromOrder(order) {
+  const cents =
+    order.totalCents ??
+    order.total ??
+    0;
+
+  const dollars = Number(cents) / 100;
+  if (!isFinite(dollars) || dollars <= 0) return 0;
+
+  // Earn 1 point for every full $10 spent
+  return Math.floor(dollars / 10);
 }
 
 /* ---------- Fallback HTML receipt (used in demo-only mode or on write failure) ---------- */
@@ -27,71 +39,111 @@ function buildReceiptHTML({ orderId = "LOCAL-DEMO", createdAt, items, subtotalCe
     )
     .join("");
 
-  return `<!doctype html>
-<html><head><meta charset="utf-8"><title>Receipt ${orderId}</title>
-<style>
-body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:#111;margin:20px}
-.header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ddd;padding-bottom:10px;margin-bottom:12px}
-.brand{font-size:22px;font-weight:600}.meta{font-size:13px;color:#555}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 6px;border-top:1px solid #eee}th{text-align:left}
-.totals{margin-top:12px;font-size:14px}.totals div{display:flex;justify-content:space-between;padding:4px 0}
-.total{font-weight:700;font-size:16px;border-top:1px solid #eee;margin-top:6px;padding-top:6px}
-.thanks{text-align:center;margin-top:24px;font-size:13px;color:#444}
-@media print{.noprint{display:none}body{margin:0}@page{size:A4;margin:12mm}}
-</style></head>
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Receipt ${orderId}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 24px; background: #f3f4f6; }
+    .page { max-width: 720px; margin: 0 auto; background: white; padding: 24px 28px; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.18); }
+    h1 { margin-top: 0; font-size: 24px; }
+    .meta { font-size: 13px; color: #4b5563; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { padding: 8px 6px; font-size: 13px; }
+    thead th { text-align: left; border-bottom: 1px solid #e5e7eb; color: #4b5563; }
+    tbody td { border-bottom: 1px solid #f3f4f6; }
+    tfoot td { font-size: 14px; }
+    tfoot tr:nth-child(3) td { font-weight: 600; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+    .total-row td { font-size: 15px; font-weight: 700; }
+    .brand { font-size: 12px; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.12em; margin-bottom: 4px; }
+    .footer { margin-top: 18px; font-size: 12px; color: #6b7280; }
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; }
+    }
+  </style>
+</head>
 <body>
-  <div class="header">
-    <div>
-      <div class="brand">Legacy Liquor</div>
-      <div class="meta">Order #${orderId}</div>
-      <div class="meta">Date: ${new Date(createdAt).toLocaleString()}</div>
+  <div class="page">
+    <div class="brand">Legacy Liquor • Order Receipt</div>
+    <h1>Order ${orderId}</h1>
+    <div class="meta">
+      <div>Date: ${createdAt ? new Date(createdAt).toLocaleString() : "—"}</div>
     </div>
-    <img src="/logo.png" alt="Legacy Liquor" style="height:60px;object-fit:contain" onerror="this.style.display='none'"/>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50%;">Item</th>
+          <th style="width: 15%; text-align:center;">Qty</th>
+          <th style="width: 15%;">Price</th>
+          <th style="width: 20%; text-align:right;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows || `<tr><td colspan="4" style="padding:16px 4px;color:#6b7280;">No items found.</td></tr>`}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" style="text-align:right;padding-top:8px;">Subtotal</td>
+          <td style="text-align:right;padding-top:8px;">${money(subtotalCents)}</td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align:right;">GST</td>
+          <td style="text-align:right;">${money(taxCents)}</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3" style="text-align:right;">Total</td>
+          <td style="text-align:right;">${money(totalCents)}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="footer">
+      Thank you for shopping with Legacy Liquor. This is a demo receipt generated from the capstone project.
+    </div>
   </div>
-  <table>
-    <thead><tr><th>Item</th><th style="text-align:center;">Qty</th><th>Price</th><th style="text-align:right;">Line total</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <div class="totals">
-    <div><span>Subtotal</span><span>${money(subtotalCents)}</span></div>
-    <div><span>Tax</span><span>${money(taxCents)}</span></div>
-    <div><span>Delivery</span><span>${money(deliveryCents)}</span></div>
-    <div class="total"><span>Total</span><span>${money(totalCents)}</span></div>
-  </div>
-  <p class="thanks">Thanks for shopping with us!</p>
-  <script>window.addEventListener('load',()=>{try{window.print()}catch(e){}})</script>
-</body></html>`;
+</body>
+</html>
+  `;
 }
 
-function openClientReceipt({ order, orderId = "LOCAL-DEMO" }) {
-  const html = buildReceiptHTML({
-    orderId,
-    createdAt: Date.now(),
-    items: order.items,
-    subtotalCents: order.subtotalCents,
-    taxCents: order.taxCents,
-    deliveryCents: order.deliveryCents,
-    totalCents: order.totalCents,
-  });
-
+/* ---------- Modal to show receipt in new window ---------- */
+function openClientReceipt({ orderId, order }) {
   try {
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const w = window.open(url, "_blank"); // allow print script
-    if (!w) window.open("data:text/html;charset=utf-8," + encodeURIComponent(html), "_blank");
-  } catch {
-    window.open("data:text/html;charset=utf-8," + encodeURIComponent(html), "_blank");
+    const html = buildReceiptHTML({
+      orderId,
+      createdAt: Date.now(),
+      items: order.items || [],
+      subtotalCents: order.subtotalCents,
+      taxCents: order.taxCents,
+      deliveryCents: order.deliveryCents,
+      totalCents: order.totalCents,
+    });
+    const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=800");
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  } catch (e) {
+    console.warn("Failed to open receipt window", e);
   }
 }
 
+/* ---------- Checkout page ---------- */
 export default function CheckoutPage() {
-  const { items, subtotalCents, clearCart, setOpen } = useCart();
   const router = useRouter();
+  const { items, subtotalCents, clearCart } = useCart();
+
   const [sending, setSending] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    setOpen(false);
-  }, [setOpen]);
+    // Basic guard: if cart is empty, send them back
+    if (!items || items.length === 0) {
+      setOpen(false);
+    }
+  }, [items]);
 
   const delivery = 0;
   const taxes = Math.round(subtotalCents * 0.05);
@@ -117,7 +169,6 @@ export default function CheckoutPage() {
       taxCents: taxes,
       deliveryCents: delivery,
       totalCents: total,
-      method: "pickup",
       status: "created",
     };
 
@@ -137,19 +188,43 @@ export default function CheckoutPage() {
       const user = auth.currentUser;
 
       if (user?.uid) {
-        // write to user-scoped, then mirror to top-level with same id
-        const userOrderRef = await addDoc(collection(db, "users", user.uid, "orders"), {
+        // build a base order object for loyalty + writes
+        const baseOrder = {
           ...snapshot,
           userId: user.uid,
           createdAt: serverTimestamp(),
-        });
+        };
 
-        await setDoc(doc(db, "orders", userOrderRef.id), {
-          id: userOrderRef.id,
-          ...snapshot,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-        });
+        const loyaltyPoints = calculateLoyaltyPointsFromOrder(baseOrder);
+
+        // write to user-scoped, then mirror to top-level with same id
+        const userOrderRef = await addDoc(
+          collection(db, "users", user.uid, "orders"),
+          {
+            ...baseOrder,
+            loyaltyPointsEarned: loyaltyPoints,
+          }
+        );
+
+        await setDoc(
+          doc(db, "orders", userOrderRef.id),
+          {
+            id: userOrderRef.id,
+            ...baseOrder,
+            loyaltyPointsEarned: loyaltyPoints,
+          }
+        );
+
+        if (loyaltyPoints > 0) {
+          await setDoc(
+            doc(db, "users", user.uid),
+            {
+              loyaltyPoints: increment(loyaltyPoints),
+              lifetimeLoyaltyPoints: increment(loyaltyPoints),
+            },
+            { merge: true }
+          );
+        }
 
         clearCart();
         setOpen(false);
@@ -161,6 +236,7 @@ export default function CheckoutPage() {
       const topLevelRef = await addDoc(collection(db, "orders"), {
         ...snapshot,
         anonymous: true,
+        loyaltyPointsEarned: 0,
         createdAt: serverTimestamp(),
       });
 
@@ -170,20 +246,31 @@ export default function CheckoutPage() {
     } catch (err) {
       // Use warn (not error) so Next dev overlay doesn't hijack the screen
       if (process.env.NODE_ENV !== "production") {
-        console.warn("checkout write failed; using local print fallback", err);
+        console.warn("checkout write failed; using local receipt only", err);
       }
       clearCart();
       setOpen(false);
-      openClientReceipt({ order: snapshot, orderId: "LOCAL-DEMO" });
-      setTimeout(() => router.push("/"), 1200);
+      openClientReceipt({ order: snapshot, orderId: "LOCAL-FAILOVER" });
     } finally {
       setSending(false);
     }
   }
 
+  if (!open) {
+    return (
+      <main className="max-w-3xl mx-auto pt-28 pb-10 px-4">
+        {!items || items.length === 0 ? (
+          <p>Your cart is empty.</p>
+        ) : (
+          <p>Checkout closed.</p>
+        )}
+      </main>
+    );
+  }
+
   return (
-    <main className="max-w-3xl mx-auto p-6 pt-40 text-black font-serif bg-white">
-      <h1 className="text-2xl font-semibold mb-4">Checkout</h1>
+    <main className="max-w-3xl mx-auto pt-28 pb-10 px-4">
+      <h1 className="text-3xl font-extrabold tracking-tight mb-4">Checkout</h1>
 
       {!items || items.length === 0 ? (
         <p>Your cart is empty.</p>
@@ -199,11 +286,13 @@ export default function CheckoutPage() {
                     <div className="truncate">
                       <div className="truncate">{it.title}</div>
                       <div className="text-sm text-gray-600">
-                        Qty {it.qty} × {money(it.priceCents)}
+                        {money(it.priceCents)} × {it.qty}
                       </div>
                     </div>
                   </div>
-                  <div className="font-medium">{money((it.priceCents || 0) * (it.qty || 1))}</div>
+                  <div className="font-mono">
+                    {money(Number(it.priceCents || 0) * Number(it.qty || 1))}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -222,12 +311,37 @@ export default function CheckoutPage() {
             <h2 className="font-semibold">Payment (Demo)</h2>
 
             <div className="flex gap-3">
-              <label className="flex items-center gap-2">
-                <input type="radio" name="pay" defaultChecked /> Pay on pickup
+              <label className="flex items-center gap-2 text-sm">
+                <input type="radio" name="pay" defaultChecked />
+                <span>Credit / Debit card</span>
               </label>
-              <label className="flex items-center gap-2 text-gray-500">
-                <input type="radio" name="pay" disabled /> Card (demo)
+              <label className="flex items-center gap-2 text-sm text-gray-500">
+                <input type="radio" name="pay" disabled />
+                <span>Gift card (coming soon)</span>
               </label>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+              <input
+                className="border rounded px-2 py-1"
+                placeholder="Card number"
+                required
+              />
+              <input
+                className="border rounded px-2 py-1"
+                placeholder="Name on card"
+                required
+              />
+              <input
+                className="border rounded px-2 py-1"
+                placeholder="MM/YY"
+                required
+              />
+              <input
+                className="border rounded px-2 py-1"
+                placeholder="CVC"
+                required
+              />
             </div>
 
             <button
