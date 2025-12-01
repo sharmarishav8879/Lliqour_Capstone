@@ -8,6 +8,7 @@ import {
   query,
   where,
   getDocs,
+  setDoc,
 } from "firebase/firestore";
 import { useUserAuth } from "../auth/_util/auth-context";
 import { db } from "../auth/_util/firebase";
