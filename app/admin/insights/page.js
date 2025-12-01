@@ -419,7 +419,6 @@ function downloadOrdersCSV(orders){
       const d=toDateFlexible(o.createdAt||o.created_at||o.date||o.createdOn);
       return [
         o.id, d?d.toLocaleString():"", o.method||o.paymentMethod||"",
-        (o.items||[]).map(i=>`${i.name||i.title} x${i.qty}`).join("; "),
         money(sub), money(tax), money(total)
       ];
     })
