@@ -432,7 +432,6 @@ function downloadOrdersCSV(orders){
 function downloadTopCSV(top,period){
   const rows=[["Product","Quantity","Revenue"], ...top.map(p=>[p.name,p.qty,money(p.revenue)])];
   const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
-  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
   a.download=`insights-top-products-${period}d.csv`; a.click(); URL.revokeObjectURL(a.href);
 }
