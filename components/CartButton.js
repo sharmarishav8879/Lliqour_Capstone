@@ -38,12 +38,13 @@ export default function CartButton() {
       <button
         aria-label="Cart"
         onClick={handleClick}
-        className="relative inline-flex items-center justify-center"
+        className="relative inline-flex items-center justify-center mt-2 ml-4"
         title="Cart"
       >
-        <span style={{ fontSize: 22 }}>
-          <ShoppingCart />
-        </span>
+        <ShoppingCart 
+            size={26}
+            strokeWidth={1.5}
+        />
         {count > 0 && (
           <span
             className="absolute -top-2 -right-2 rounded-full text-white text-xs px-1.5"
