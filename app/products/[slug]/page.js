@@ -16,7 +16,6 @@ export default function ProductDetailClient() {
   const [addReview, setAddReview] = useState(false);
   const [reviews, setReviews] = useState([]);
 
-  // Fetch product data
   useEffect(() => {
     if (!slug) return;
 

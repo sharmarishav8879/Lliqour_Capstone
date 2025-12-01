@@ -10,6 +10,8 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "./auth/_util/firebase";
 import RotatingBanner from "@/components/RotatingBanner";
 import OfferCountdown from "@/components/OfferCountdown";
+import FoodPairing from "@/components/FoodPairing";
+import RecentlyViewed from "@/components/RecentlyViewed";
 
 function ProductCard({ product, className = "" }) {
   const { theme } = useTheme();
@@ -178,7 +180,13 @@ export default function Home() {
   return (
     <main className="scroll-smooth font-serif">
       {banner.length > 0 && (
-        <div className="absolute top-25 left-15 transform -translate-x-1/2 z-50 w-30 shadow-lg rounded-lg overflow-hidden">
+        <div
+          className={`absolute ${
+            theme == "light"
+              ? " border border-gray-950"
+              : "border border-gray-300"
+          } top-25 left-20 transform -translate-x-1/2 z-50 w-30 shadow-lg rounded-lg overflow-hidden`}
+        >
           <RotatingBanner banner={banner} />
         </div>
       )}
@@ -234,6 +242,19 @@ export default function Home() {
         >
           Catalogue
         </h2>
+        <RecentlyViewed />
+        <div>
+          <h2
+            className={`text-4xl font-bold mb-12 ${
+              theme === "light" ? "text-black" : "text-white"
+            }`}
+          >
+            Food Pairing Recommendations
+          </h2>
+          <div className="w-full max-w-6xl mb-12 flex justify-center">
+            <FoodPairing />
+          </div>
+        </div>
 
         <nav className="flex flex-wrap justify-center gap-4 relative z-10">
           {categories.map((category) => (

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAllProducts } from "@/lib/products"; // or ../../lib/products if alias not set
 
-export default function ProductsPage() {
+export default function ProductsPage({ product }) {
   // React state to hold the list we show
   const [items, setItems] = useState([]);
 
