@@ -20,7 +20,7 @@ import { getAllProducts } from "@/lib/products";
 import AddProducts from "../../adminComponents/addProducts";
 import { deleteProduct } from "../../adminComponents/deleteProducts";
 import UpdateProducts from "../../adminComponents/updateProducts";
-import { RiCoinLine } from "react-icons/ri";
+// import { RiCoinLine } from "react-icons/ri";
 import { useTheme } from "@/components/ThemeToggle";
 
 export default function Profile() {
@@ -273,7 +273,7 @@ export default function Profile() {
               </button>
 
               <h3 className="mt-2 font-semibold text-orange-500 flex items-center gap-2">
-                  <RiCoinLine size={20} className="inline-block mb-0.5" />
+                  {/** <RiCoinLine size={20} className="inline-block mb-0.5" /> **/}
                   {loyaltyPoints} Points
               </h3>
 
