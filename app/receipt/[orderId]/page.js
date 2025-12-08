@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import { db } from "@/app/auth/_util/firebase";
 import {
   doc,
@@ -21,8 +21,8 @@ function money(cents) {
   }).format((cents || 0) / 100);
 }
 
-export default function ReceiptPage({ params }) {
-  const { orderId } = params;
+export default function ReceiptPage() {
+  const { orderId } = useParams();        // ✅ get dynamic segment from URL
   const qs = useSearchParams();
   const uid = qs.get("u"); // when present, we read users/{uid}/orders/{orderId}
 
@@ -60,9 +60,6 @@ export default function ReceiptPage({ params }) {
       }
     }
     load();
-
-    // Optional: auto-print on load. Uncomment next line if desired.
-    // window.addEventListener("load", () => setTimeout(() => window.print(), 300));
 
     return () => {
       active = false;
@@ -131,7 +128,7 @@ export default function ReceiptPage({ params }) {
         <tbody>
           {(order.items || []).map((it, idx) => {
             const line =
-              it.lineTotalCents ??
+              it.lineTotalCents ?? 
               (it.priceCents || 0) * (Number(it.qty || 0) || 0);
             return (
               <tr key={idx} className="border-t">
