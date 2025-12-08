@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "../app/context/CartProvider";
 import { FaRegTrashAlt } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 function money(cents) {
   return new Intl.NumberFormat("en-CA", {
@@ -23,6 +24,8 @@ export default function MiniCart() {
     setOpen,
   } = useCart();
   const isEmpty = items.length === 0;
+
+  const router = useRouter();
 
   // Close on Esc
   useEffect(() => {
@@ -53,17 +56,17 @@ export default function MiniCart() {
         aria-label="Mini cart drawer"
       >
         {/* header */}
-<div className="relative px-4 py-3">
-  <h3 className="text-lg font-semibold text-center">Your Cart</h3>
-  <button
-    type="button"
-    onClick={() => setOpen(false)}
-    aria-label="Close"
-    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl leading-none"
-  >
-    ×
-  </button>
-</div>
+        <div className="relative px-4 py-3">
+          <h3 className="text-lg font-semibold text-center">Your Cart</h3>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Close"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
 
         {/* items list */}
         <div className="flex-1 overflow-auto px-4 py-3 space-y-3">
@@ -71,7 +74,10 @@ export default function MiniCart() {
             <p className="text-gray-600">Your cart is empty.</p>
           ) : (
             items.map((it) => (
-              <div key={it.id} className="flex gap-3 rounded-lg shadow-xl px-4 py-3">
+              <div
+                key={it.id}
+                className="flex gap-3 rounded-lg shadow-xl px-4 py-3"
+              >
                 <img
                   src={it.image || "/fallback.png"}
                   alt={it.title}
@@ -83,7 +89,7 @@ export default function MiniCart() {
                     <button
                       type="button"
                       onClick={() => removeItem(it.id)}
-                       className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-red-500 text-white"
+                      className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-red-500 text-white"
                     >
                       <FaRegTrashAlt size={18} />
                     </button>
@@ -154,21 +160,20 @@ export default function MiniCart() {
             </button>
 
             {/* Checkout button */}
-            <Link
-              href="/checkout"
-              onClick={() => setOpen(false)}
+            <button
+              type="button"
+              disabled={isEmpty}
+              onClick={() => !isEmpty && router.push("/checkout")}
               className={`
-                !text-white
-                flex-1 text-center py-3 rounded-lg font-medium
-                bg-gradient-to-r from-orange-500 to-amber-400 shadow-md
-               hover:from-orange-600 hover:to-amber-500
-                transition-all duration-300 transform hover:scale-105 active:scale-95
-                ${isEmpty ? "pointer-events-none opacity-75" : ""}
-            `}
-              aria-disabled={isEmpty}
+    flex-1 text-center py-3 rounded-lg font-medium
+    bg-gradient-to-r from-orange-500 to-amber-400 shadow-md
+    hover:from-orange-600 hover:to-amber-500
+    transition-all duration-300 transform hover:scale-105 active:scale-95
+    ${isEmpty ? "pointer-events-none opacity-75" : ""}
+  `}
             >
               Checkout
-            </Link>
+            </button>
           </div>
 
           <p className="text-[11px] text-gray-500">
