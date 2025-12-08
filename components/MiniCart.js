@@ -163,14 +163,19 @@ export default function MiniCart() {
             <button
               type="button"
               disabled={isEmpty}
-              onClick={() => !isEmpty && router.push("/checkout")}
+              onClick={() => {
+                if (!isEmpty) {
+                  router.push("/checkout");
+                  setOpen(false);
+                }
+              }}
               className={`
-    flex-1 text-center py-3 rounded-lg font-medium
-    bg-gradient-to-r from-orange-500 to-amber-400 shadow-md
-    hover:from-orange-600 hover:to-amber-500
-    transition-all duration-300 transform hover:scale-105 active:scale-95
-    ${isEmpty ? "pointer-events-none opacity-75" : ""}
-  `}
+              flex-1 text-center py-3 rounded-lg font-medium
+              bg-gradient-to-r from-orange-500 to-amber-400 shadow-md
+             hover:from-orange-600 hover:to-amber-500
+              transition-all duration-300 transform hover:scale-105 active:scale-95
+              ${isEmpty ? "pointer-events-none opacity-75" : ""}
+            `}
             >
               Checkout
             </button>
