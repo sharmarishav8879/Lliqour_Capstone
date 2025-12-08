@@ -53,17 +53,17 @@ export default function MiniCart() {
         aria-label="Mini cart drawer"
       >
         {/* header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h3 className="text-lg font-semibold">Your Cart</h3>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Close"
-            className="text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
+<div className="relative px-4 py-3">
+  <h3 className="text-lg font-semibold text-center">Your Cart</h3>
+  <button
+    type="button"
+    onClick={() => setOpen(false)}
+    aria-label="Close"
+    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl leading-none"
+  >
+    ×
+  </button>
+</div>
 
         {/* items list */}
         <div className="flex-1 overflow-auto px-4 py-3 space-y-3">
@@ -71,7 +71,7 @@ export default function MiniCart() {
             <p className="text-gray-600">Your cart is empty.</p>
           ) : (
             items.map((it) => (
-              <div key={it.id} className="flex gap-3 border rounded-lg p-2">
+              <div key={it.id} className="flex gap-3 rounded-lg shadow-xl px-4 py-3">
                 <img
                   src={it.image || "/fallback.png"}
                   alt={it.title}
@@ -124,10 +124,10 @@ export default function MiniCart() {
         </div>
 
         {/* sticky footer */}
-        <div className="border-t p-4 space-y-3 bg-white">
+        <div className="p-4 space-y-3 bg-white">
           {/* subtotal row */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-700">Subtotal</span>
+            <span className="text-gray-800">Subtotal</span>
             <span className="text-lg font-semibold">
               {money(subtotalCents)}
             </span>
