@@ -4,19 +4,25 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartProvider";
 import { db, auth } from "@/app/auth/_util/firebase";
-import { addDoc, collection, doc, serverTimestamp, setDoc, increment } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  setDoc,
+  increment,
+} from "firebase/firestore";
 
 const DEMO_ONLY = process.env.NEXT_PUBLIC_DEMO_RECEIPT_ONLY === "1";
 
 function money(cents) {
-  return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" })
-    .format((cents || 0) / 100);
+  return new Intl.NumberFormat("en-CA", {
+    style: "currency",
+    currency: "CAD",
+  }).format((cents || 0) / 100);
 }
 function calculateLoyaltyPointsFromOrder(order) {
-  const cents =
-    order.totalCents ??
-    order.total ??
-    0;
+  const cents = order.totalCents ?? order.total ?? 0;
 
   const dollars = Number(cents) / 100;
   if (!isFinite(dollars) || dollars <= 0) return 0;
@@ -26,7 +32,15 @@ function calculateLoyaltyPointsFromOrder(order) {
 }
 
 /* ---------- Fallback HTML receipt (used in demo-only mode or on write failure) ---------- */
-function buildReceiptHTML({ orderId = "LOCAL-DEMO", createdAt, items, subtotalCents, taxCents, deliveryCents, totalCents }) {
+function buildReceiptHTML({
+  orderId = "LOCAL-DEMO",
+  createdAt,
+  items,
+  subtotalCents,
+  taxCents,
+  deliveryCents,
+  totalCents,
+}) {
   const rows = (items || [])
     .map(
       (it) => `
@@ -82,12 +96,17 @@ function buildReceiptHTML({ orderId = "LOCAL-DEMO", createdAt, items, subtotalCe
         </tr>
       </thead>
       <tbody>
-        ${rows || `<tr><td colspan="4" style="padding:16px 4px;color:#6b7280;">No items found.</td></tr>`}
+        ${
+          rows ||
+          `<tr><td colspan="4" style="padding:16px 4px;color:#6b7280;">No items found.</td></tr>`
+        }
       </tbody>
       <tfoot>
         <tr>
           <td colspan="3" style="text-align:right;padding-top:8px;">Subtotal</td>
-          <td style="text-align:right;padding-top:8px;">${money(subtotalCents)}</td>
+          <td style="text-align:right;padding-top:8px;">${money(
+            subtotalCents
+          )}</td>
         </tr>
         <tr>
           <td colspan="3" style="text-align:right;">GST</td>
@@ -120,7 +139,11 @@ function openClientReceipt({ orderId, order }) {
       deliveryCents: order.deliveryCents,
       totalCents: order.totalCents,
     });
-    const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=800");
+    const w = window.open(
+      "",
+      "_blank",
+      "noopener,noreferrer,width=900,height=800"
+    );
     if (!w) return;
     w.document.open();
     w.document.write(html);
@@ -206,14 +229,11 @@ export default function CheckoutPage() {
           }
         );
 
-        await setDoc(
-          doc(db, "orders", userOrderRef.id),
-          {
-            id: userOrderRef.id,
-            ...baseOrder,
-            loyaltyPointsEarned: loyaltyPoints,
-          }
-        );
+        await setDoc(doc(db, "orders", userOrderRef.id), {
+          id: userOrderRef.id,
+          ...baseOrder,
+          loyaltyPointsEarned: loyaltyPoints,
+        });
 
         if (loyaltyPoints > 0) {
           await setDoc(
@@ -269,20 +289,24 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto pt-28 pb-10 px-4">
+    <main className="max-w-3xl mx-auto pt-28 pb-10 px-4 font-serif">
       <h1 className="text-3xl font-extrabold tracking-tight mb-4">Checkout</h1>
 
       {!items || items.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
         <>
-          <section className="border rounded-lg p-4 mb-4">
+          <section className="shadow-xl bg-gray-50 rounded-lg p-4 mb-4">
             <h2 className="font-semibold mb-2">Order Summary</h2>
             <ul className="space-y-2">
               {items.map((it) => (
                 <li key={it.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
-                    <img src={it.image || "/fallback.png"} alt={it.title} className="w-12 h-12 rounded object-cover" />
+                    <img
+                      src={it.image || "/fallback.png"}
+                      alt={it.title}
+                      className="w-12 h-12 rounded object-cover"
+                    />
                     <div className="truncate">
                       <div className="truncate">{it.title}</div>
                       <div className="text-sm text-gray-600">
@@ -290,7 +314,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="font-mono">
+                  <div>
                     {money(Number(it.priceCents || 0) * Number(it.qty || 1))}
                   </div>
                 </li>
@@ -298,16 +322,29 @@ export default function CheckoutPage() {
             </ul>
 
             <div className="mt-4 border-t pt-3 space-y-1 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><span>{money(subtotalCents)}</span></div>
-              <div className="flex justify-between"><span>GST (demo 5%)</span><span>{money(taxes)}</span></div>
-              <div className="flex justify-between"><span>Delivery</span><span>{money(delivery)}</span></div>
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{money(subtotalCents)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>GST (demo 5%)</span>
+                <span>{money(taxes)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span>{money(delivery)}</span>
+              </div>
               <div className="flex justify-between text-lg font-semibold pt-1">
-                <span>Total</span><span>{money(total)}</span>
+                <span>Total</span>
+                <span>{money(total)}</span>
               </div>
             </div>
           </section>
 
-          <form onSubmit={placeOrder} className="border rounded-lg p-4 space-y-3">
+          <form
+            onSubmit={placeOrder}
+            className="shadow-xl bg-gray-50 rounded-lg p-4 space-y-3"
+          >
             <h2 className="font-semibold">Payment (Demo)</h2>
 
             <div className="flex gap-3">
@@ -347,13 +384,16 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={sending}
-              className="w-full rounded py-2 text-white disabled:opacity-60"
-              style={{ background: "#ff6a00" }}
+              className={`w-full px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                sending ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
               {sending ? "Placing order…" : "Place order (demo)"}
             </button>
 
-            <p className="text-[11px] text-gray-500">Demo only — no real payment is processed.</p>
+            <p className="text-[11px] text-gray-500">
+              Demo only — no real payment is processed.
+            </p>
           </form>
         </>
       )}

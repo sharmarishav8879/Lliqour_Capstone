@@ -208,11 +208,11 @@ export default function PartyPlannerPage() {
     theme === "light" ? "bg-white border-gray-300" : "bg-gray-800 border-gray-700";
 
   return (
-    <div className={`min-h-screen ${containerBg} px-4 py-8`}>
+    <div className={`font-serif min-h-screen ${containerBg} px-4 py-8`}>
       <div className="max-w-5xl mx-auto space-y-8">
         <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight">
               Party Planner
             </h1>
             <p className="text-sm text-gray-500 mt-1">
@@ -232,7 +232,7 @@ export default function PartyPlannerPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {/* Left: Form */}
           <section
-            className={`border rounded-xl p-4 space-y-4 ${cardBg}`}
+            className={`shadow-xl rounded-xl p-4 space-y-4 ${cardBg}`}
           >
             <h2 className="text-lg font-bold">Event details</h2>
 
@@ -319,7 +319,7 @@ export default function PartyPlannerPage() {
 
           {/* Right: Generated plan + save button */}
           <section
-            className={`border rounded-xl p-4 flex flex-col gap-3 ${cardBg}`}
+            className={`shadow-xl rounded-xl p-4 flex flex-col gap-3 ${cardBg}`}
           >
             <h2 className="text-lg font-bold">Suggested plan</h2>
 
@@ -409,7 +409,7 @@ export default function PartyPlannerPage() {
 
         {/* Saved plans section */}
         <section
-          className={`border rounded-xl p-4 mt-4 ${cardBg}`}
+          className={`shadow-xl rounded-xl p-4 mt-4 ${cardBg}`}
         >
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-bold">My saved party plans</h2>

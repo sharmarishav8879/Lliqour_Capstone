@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "../app/context/CartProvider";
+import { FaRegTrashAlt } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 function money(cents) {
   return new Intl.NumberFormat("en-CA", {
@@ -23,6 +25,8 @@ export default function MiniCart() {
   } = useCart();
   const isEmpty = items.length === 0;
 
+  const router = useRouter();
+
   // Close on Esc
   useEffect(() => {
     if (!open) return;
@@ -34,7 +38,7 @@ export default function MiniCart() {
   }, [open, setOpen]);
 
   return (
-    <>
+    <main className="font-serif">
       {open && (
         <div
           className="fixed inset-0 bg-black/40 z-40"
@@ -43,7 +47,7 @@ export default function MiniCart() {
       )}
 
       <aside
-        className="fixed top-0 right-0 h-full w-[380px] max-w-[92vw] bg-white text-black shadow-2xl z-50 flex flex-col"
+        className="fixed top-0 right-0 h-full w-[380px] max-w-[92vw] bg-white shadow-2xl z-50 flex flex-col"
         style={{
           transform: open ? "translateX(0)" : "translateX(100%)",
           transition: "transform .2s ease",
@@ -52,13 +56,13 @@ export default function MiniCart() {
         aria-label="Mini cart drawer"
       >
         {/* header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h3 className="text-lg font-semibold">Your Cart</h3>
+        <div className="relative px-4 py-3">
+          <h3 className="text-lg font-semibold text-center">Your Cart</h3>
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close"
-            className="text-2xl leading-none"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl leading-none"
           >
             ×
           </button>
@@ -70,7 +74,10 @@ export default function MiniCart() {
             <p className="text-gray-600">Your cart is empty.</p>
           ) : (
             items.map((it) => (
-              <div key={it.id} className="flex gap-3 border rounded-lg p-2">
+              <div
+                key={it.id}
+                className="flex gap-3 rounded-lg shadow-xl px-4 py-3"
+              >
                 <img
                   src={it.image || "/fallback.png"}
                   alt={it.title}
@@ -82,9 +89,9 @@ export default function MiniCart() {
                     <button
                       type="button"
                       onClick={() => removeItem(it.id)}
-                      className="text-red-600 text-sm shrink-0 hover:underline"
+                      className="w-10 h-10 rounded-full flex items-center justify-center shadow bg-red-500 text-white"
                     >
-                      Remove
+                      <FaRegTrashAlt size={18} />
                     </button>
                   </div>
                   <div className="text-sm text-gray-600">
@@ -123,44 +130,62 @@ export default function MiniCart() {
         </div>
 
         {/* sticky footer */}
-        <div className="border-t p-4 space-y-3 bg-white">
+        <div className="p-4 space-y-3 bg-white">
+          {/* subtotal row */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-700">Subtotal</span>
+            <span className="text-gray-800">Subtotal</span>
             <span className="text-lg font-semibold">
               {money(subtotalCents)}
             </span>
           </div>
+
+          {/* action buttons */}
           <div className="flex gap-2">
+            {/* Clear button */}
             <button
               type="button"
               onClick={clearCart}
               disabled={isEmpty}
-              className={`flex-1 rounded border py-2 ${
-                isEmpty ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`
+                flex-1 text-center py-3 rounded-lg font-medium
+               text-white
+                  bg-gradient-to-r from-gray-400 to-gray-500 shadow-md
+                 hover:from-gray-500 hover:to-gray-600
+                    transition-all duration-300 transform hover:scale-105 active:scale-95
+                ${isEmpty ? "pointer-events-none opacity-50" : ""}
+              `}
               title={isEmpty ? "Cart is already empty" : "Clear cart"}
             >
               Clear
             </button>
 
-            {/* Next routing + close drawer */}
-            <Link
-              href="/checkout"
-              onClick={() => setOpen(false)}
-              className={`flex-1 text-center rounded py-2 text-white ${
-                isEmpty ? "pointer-events-none opacity-60" : ""
-              }`}
-              style={{ background: "#ff6a00" }}
-              aria-disabled={isEmpty}
+            {/* Checkout button */}
+            <button
+              type="button"
+              disabled={isEmpty}
+              onClick={() => {
+                if (!isEmpty) {
+                  router.push("/checkout");
+                  setOpen(false);
+                }
+              }}
+              className={`
+              flex-1 text-center py-3 rounded-lg font-medium
+              bg-gradient-to-r from-orange-500 to-amber-400 shadow-md
+             hover:from-orange-600 hover:to-amber-500
+              transition-all duration-300 transform hover:scale-105 active:scale-95
+              ${isEmpty ? "pointer-events-none opacity-75" : ""}
+            `}
             >
               Checkout
-            </Link>
+            </button>
           </div>
+
           <p className="text-[11px] text-gray-500">
             Taxes &amp; delivery calculated at checkout.
           </p>
         </div>
       </aside>
-    </>
+    </main>
   );
 }

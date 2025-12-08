@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { use } from "react"; 
 import { db } from "@/app/auth/_util/firebase";
 import {
   doc,
@@ -21,8 +22,8 @@ function money(cents) {
   }).format((cents || 0) / 100);
 }
 
-export default function ReceiptPage() {
-  const { orderId } = useParams();        // ✅ get dynamic segment from URL
+export default function ReceiptPage({ params }) {
+  const { orderId } = use(params);
   const qs = useSearchParams();
   const uid = qs.get("u"); // when present, we read users/{uid}/orders/{orderId}
 
@@ -95,7 +96,7 @@ export default function ReceiptPage() {
     : new Date();
 
   return (
-    <div className="max-w-[780px] mx-auto my-6 bg-white p-6 shadow print:shadow-none print:my-0 print:p-0">
+    <div className="shadow-xl font-serif bg-gray-50 rounded-lg max-w-[780px] mx-auto my-6 p-6 print:shadow-none print:my-0 print:p-0">
       {/* Header */}
       <div className="flex items-center justify-between border-b pb-4 mb-4">
         <div>
@@ -107,10 +108,11 @@ export default function ReceiptPage() {
         </div>
         <div className="w-20 h-20 relative">
           <Image
-            src="/logo.png"
-            alt="Legacy Liquor"
-            fill
-            style={{ objectFit: "contain" }}
+            src="/Logo.jpg"
+            className="border-orange-500 border-2 rounded-full"
+            alt="Legacy Liquor Logo"
+            width={60}
+            height={60}
           />
         </div>
       </div>
