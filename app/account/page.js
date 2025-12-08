@@ -124,9 +124,32 @@ export default function Profile() {
       }
     };
 
+    const fetchOrderHistory = async () => {
+      try {
+        const ordersRef = collection(db, "orders");
+        const q = query(ordersRef, where("userId", "==", user.uid));
+        const snapshot = await getDocs(q);
+
+        const orders = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        orders.sort(
+          (a, b) =>
+            (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)
+        );
+
+        setOrderHistory(orders);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+
     fetchUserData();
     fetchTickets();
     fetchProducts();
+    fetchOrderHistory();
   }, [user, authLoading, router]);
 
   const filteredItems = items.filter(
@@ -143,6 +166,28 @@ export default function Profile() {
         <p className="font-medium text-black">{title}</p>
         <p className="text-sm text-gray-500">
           {subtitleLabel}: {date}
+        </p>
+      </div>
+    );
+  }
+
+  function OrderCard({ order }) {
+    const date = order.createdAt?.toDate
+      ? order.createdAt.toDate().toLocaleDateString()
+      : "Unknown date";
+
+    const total = (order.totalCents / 100).toFixed(2);
+
+    return (
+      <div className="p-4 bg-white border rounded-4xl shadow-sm px-5 mt-2 mb-2">
+        <p className="font-medium text-black">Order #{order.id.slice(0, 6)}</p>
+
+        <p className="text-sm text-gray-600 mt-1">
+          <span className="font-semibold">Placed on:</span> {date}
+        </p>
+
+        <p className="text-sm text-gray-600 mt-1">
+          <span className="font-semibold">Total:</span> ${total}
         </p>
       </div>
     );
@@ -273,8 +318,8 @@ export default function Profile() {
               </button>
 
               <h3 className="mt-2 font-semibold text-orange-500 flex items-center gap-2">
-                  <RiCoinLine size={20} className="inline-block mb-0.5" />
-                  {loyaltyPoints} Points
+                <RiCoinLine size={20} className="inline-block mb-0.5" />
+                {loyaltyPoints} Points
               </h3>
 
               <button
@@ -306,7 +351,9 @@ export default function Profile() {
             </h2>
 
             {tickets.length === 0 ? (
-              <p className={`${theme === "light" ? "text-black" : "text-white"}`}>
+              <p
+                className={`${theme === "light" ? "text-black" : "text-white"}`}
+              >
                 You have no tickets yet.
               </p>
             ) : (
@@ -336,10 +383,16 @@ export default function Profile() {
               Order History
             </h2>
 
-            {orderHistory.length === 0 && (
-              <p className={`${theme === "light" ? "text-black" : "text-white"}`}>
+            {orderHistory.length === 0 ? (
+              <p
+                className={`${theme === "light" ? "text-black" : "text-white"}`}
+              >
                 You have no Orders yet.
               </p>
+            ) : (
+              orderHistory.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))
             )}
 
             <button
@@ -504,7 +557,9 @@ export default function Profile() {
                       product={product}
                       className="min-w-[220px]"
                       onProductDeleted={(deletedId) =>
-                        setItems((prev) => prev.filter((p) => p.id !== deletedId))
+                        setItems((prev) =>
+                          prev.filter((p) => p.id !== deletedId)
+                        )
                       }
                     />
                   ))
