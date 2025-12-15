@@ -245,25 +245,25 @@ export default function AdminInsights() {
   /* ----- THEME TOKENS ----- */
   // Light: pure white + dark orange accents
   const lightPanel =
-    "bg-white text-neutral-900 border border-orange-500";
+    "bg-white text-neutral-900 shadow-lg";
   const lightHeader =
-    "bg-white text-orange-700 border-b border-orange-500";
-  const lightZebra = ["", "bg-orange-50/70"];
+    "bg-white text-orange-700 shadow-lg";
+  const lightZebra = ["", "bg-white"];
   const lightBtn =
-    "bg-white border border-orange-600 hover:bg-orange-50 text-orange-700";
+    "px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95";
   const lightBadge =
-    "text-[12px] px-2 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-600";
+    "text-[12px] px-2 py-0.5 rounded bg-orange-100 text-orange-800 shadow-lg";
 
   // Dark: very dark navy/grey
   const darkPanel =
-    "bg-[#020617] text-neutral-100 border border-neutral-800";
+    "bg-[#020617] text-neutral-100 shadow-lg";
   const darkHeader =
-    "bg-[#020617] text-neutral-100 border-b border-neutral-700";
+    "bg-[#020617] text-neutral-100 shadow-lg";
   const darkZebra = ["", "bg-[#0b1220]"];
   const darkBtn =
-    "bg-neutral-900 border border-neutral-700 hover:bg-neutral-800";
+    "bg-neutral-900 shadow-lg hover:bg-neutral-800";
   const darkBadge =
-    "text-[12px] px-2 py-0.5 rounded bg-neutral-900 text-neutral-200 border border-neutral-700";
+    "text-[12px] px-2 py-0.5 rounded bg-neutral-900 text-neutral-200 shadow-lg";
 
   const panel = theme === "light" ? lightPanel : darkPanel;
   const headerBar = theme === "light" ? lightHeader : darkHeader;
@@ -274,7 +274,7 @@ export default function AdminInsights() {
   /* ----- UI ----- */
   return (
     <div
-      className={`min-h-screen pt-24 pb-10 px-4 sm:px-6 lg:px-8 text-[15px] ${
+      className={`min-h-screen pt-24 pb-10 px-4 sm:px-6 lg:px-8 text-[15px] font-serif ${
         theme === "light"
           ? "bg-white text-neutral-900"
           : "bg-[#020617] text-neutral-100"
@@ -283,7 +283,7 @@ export default function AdminInsights() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-4 flex items-end gap-2">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">
+            <h1 className="text-3xl font-semibold tracking-tight">
               Admin Insights
             </h1>
             <p className="text-sm text-neutral-600 dark:text-neutral-300">
@@ -292,7 +292,7 @@ export default function AdminInsights() {
           </div>
           <button
             onClick={() => setDebugOpen((v) => !v)}
-            className={`ml-auto rounded px-3 py-2 text-sm font-semibold ${btn}`}
+            className={`ml-auto rounded-lg px-3 py-2 text-sm font-semibold ${btn}`}
           >
             {debugOpen ? "Hide Debug" : "Debug data"}
           </button>
@@ -330,13 +330,13 @@ export default function AdminInsights() {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => downloadOrdersCSV(orders)}
-              className={`rounded px-3 py-2 text-sm font-semibold ${btn}`}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold ${btn}`}
             >
               Export Orders CSV
             </button>
             <button
               onClick={() => downloadTopCSV(topProducts, period)}
-              className={`rounded px-3 py-2 text-sm font-semibold ${btn}`}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold ${btn}`}
             >
               Export Top Products CSV
             </button>
@@ -505,7 +505,7 @@ function KPI({ label, value, panel }) {
       <div className="text-xs text-neutral-700 dark:text-neutral-300 font-semibold">
         {label}
       </div>
-      <div className="text-3xl font-extrabold mt-1 font-mono tabular-nums tracking-tight">
+      <div className="text-3xl font-semibold mt-1 tabular-nums tracking-tight">
         {value}
       </div>
     </div>
@@ -548,7 +548,7 @@ function Table({ header, zebra, rows, cols }) {
                   key={i}
                   className={`py-2 px-2 ${
                     i === 0 ? "text-left" : "text-right"
-                  } ${cell?.mono ? "font-mono" : ""}`}
+                  } ${cell?.mono ? "" : ""}`}
                 >
                   {cell?.r ?? cell}
                 </td>

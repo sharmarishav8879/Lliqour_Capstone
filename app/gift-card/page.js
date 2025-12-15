@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function GiftCardPage() {
   return (
-    <main style={{ maxWidth: 980, margin: "0 auto", padding: "24px" }}>
+    <main style={{ maxWidth: 980, margin: "0 auto", padding: "24px", fontFamily: "'sans-serif" }}>
       <h1 style={{ fontSize: 28, fontWeight: 750, marginBottom: 8 }}>
         Gift Card Generator
       </h1>
