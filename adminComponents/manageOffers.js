@@ -84,7 +84,7 @@ export default function ManageOffers() {
                     className="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm hover:bg-gray-100 transition"
                   >
                     <div className="flex flex-col">
-                      <span className="font-medium text-gray-800">
+                      <span className="font-medium text-gray-950">
                         {product.name}
                       </span>
                     </div>
