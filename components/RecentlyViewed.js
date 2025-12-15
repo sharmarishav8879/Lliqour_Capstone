@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { getProductsBySlugs } from "@/lib/products";
@@ -15,7 +14,7 @@ export default function RecentlyViewed() {
     const fetchFromLocalStorage = async () => {
       try {
         const stored = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
-        console.log("Local storage Ids:", stored);
+
         if (stored.length === 0) {
           setProducts([]);
           return;
@@ -24,7 +23,6 @@ export default function RecentlyViewed() {
         const data = await getProductsBySlugs(stored);
         setProducts(data);
       } catch (error) {
-        console.error("Error loading recently viewed:", error);
         toast.error("Failed to load recently viewed products");
       }
     };
@@ -35,26 +33,43 @@ export default function RecentlyViewed() {
   if (products.length === 0) return null;
 
   return (
-    <div className="mt-6">
-      <h2 className="text-lg font-semibold mb-3">Recently Viewed</h2>
+    <section className="mt-10">
+      <h2 className="text-xl font-semibold tracking-tight text-gray-900 mb-5">
+        Recently Viewed
+      </h2>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {products.map((p) => (
           <Link
             key={p.id}
             href={`/products/${p.slug}`}
-            className="border p-2 rounded shadow-sm bg-white"
+            className="group rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md hover:border-gray-300"
           >
-            <img
-              src={p.image || "/fallback.png"}
-              alt={p.name}
-              className="h-24 w-full object-cover rounded"
-            />
-            <p className="mt-1 font-medium">{p.name}</p>
-            <p className="text-sm text-gray-500">${p.price}</p>
+            <div className="relative aspect-square overflow-hidden rounded-t-xl bg-gray-50">
+              <img
+                src={p.image || "/fallback.png"}
+                alt={p.name}
+                className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+
+            <div className="p-4">
+              <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                {p.name}
+              </p>
+
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-sm font-semibold text-gray-800">
+                  ${p.price}
+                </p>
+                <span className="text-xs font-medium text-orange-500 transition group-hover:text-orange-800">
+                  View →
+                </span>
+              </div>
+            </div>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
