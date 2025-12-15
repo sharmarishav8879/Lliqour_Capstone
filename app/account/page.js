@@ -74,7 +74,6 @@ export default function Profile() {
           setName(userData.name);
           setRole(userData.role || "user");
 
-          // ⬇⬇ Loyalty point system added here ⬇⬇
           setLoyaltyPoints(userData.loyaltyPoints || 0);
           setLifetimeLoyaltyPoints(userData.lifetimeLoyaltyPoints || 0);
         }
