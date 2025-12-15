@@ -4,9 +4,30 @@ import { UpdateProducts as updateProductInDB } from "@/lib/modifyProducts";
 
 const categories = ["Whisky", "Vodka", "Wine", "Beer", "Rum", "Tequila"];
 const countries = [
-  "USA", "Canada", "UK", "France", "Germany", "Italy", "Spain", "Ireland", "Australia",
-  "Mexico", "Brazil", "Japan", "China", "India", "Russia", "South Africa", "Belgium",
-  "Netherlands", "Sweden", "Norway", "Denmark", "Finland", "Poland", "Argentina"
+  "USA",
+  "Canada",
+  "UK",
+  "France",
+  "Germany",
+  "Italy",
+  "Spain",
+  "Ireland",
+  "Australia",
+  "Mexico",
+  "Brazil",
+  "Japan",
+  "China",
+  "India",
+  "Russia",
+  "South Africa",
+  "Belgium",
+  "Netherlands",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Finland",
+  "Poland",
+  "Argentina",
 ];
 
 export default function UpdateProducts({ product, onClose, onUpdated }) {
@@ -71,19 +92,25 @@ export default function UpdateProducts({ product, onClose, onUpdated }) {
             type="number"
             placeholder="Price"
             value={formData.price || ""}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, price: e.target.value })
+            }
             className="border p-2 rounded-lg"
             required
           />
 
           <select
             value={formData.category || ""}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, category: e.target.value })
+            }
             className="border p-2 rounded-lg"
           >
             <option value="">Select Category</option>
             {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
             ))}
           </select>
 
@@ -105,19 +132,25 @@ export default function UpdateProducts({ product, onClose, onUpdated }) {
 
           <select
             value={formData.origin || ""}
-            onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, origin: e.target.value })
+            }
             className="border p-2 rounded-lg"
           >
             <option value="">Select Country</option>
             {countries.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
 
           <textarea
             placeholder="Description"
             value={formData.description || ""}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             className="border p-2 rounded-lg min-h-[60px]"
           />
 
@@ -125,7 +158,12 @@ export default function UpdateProducts({ product, onClose, onUpdated }) {
             type="number"
             placeholder="Discount"
             value={formData.discount || 0}
-            onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                discount: parseFloat(e.target.value) || 0,
+              })
+            }
             className="border p-2 rounded-lg"
           />
 
@@ -133,7 +171,12 @@ export default function UpdateProducts({ product, onClose, onUpdated }) {
             type="text"
             placeholder="Image URL"
             value={formData.image || "/placeholderProduct.jpg"}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value || "/placeholderProduct.jpg" })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                image: e.target.value || "/placeholderProduct.jpg",
+              })
+            }
             className="border p-2 rounded-lg"
           />
 

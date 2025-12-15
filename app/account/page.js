@@ -395,13 +395,32 @@ export default function Profile() {
               ))
             )}
 
-            <button
-              className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
-              onClick={() => router.push("/party-planner")}
-            >
-              Plan an Event
-            </button>
+            <div className="mt-6 flex flex-col items-center justify-center gap-4">
+  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+    <button
+      className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
+      onClick={() => router.push("/party-planner")}
+    >
+      Plan an Event
+    </button>
+
+    <button
+      className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
+      onClick={() => router.push("/recently-viewed")}
+    >
+      Continue browsing products
+    </button>
+  </div>
+
+  <button
+    className="px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-orange-500 to-amber-400 shadow-md hover:from-orange-600 hover:to-amber-500 transition-all duration-300 transform hover:scale-105 active:scale-95"
+    onClick={() => router.push("/gift-card")}
+  >
+    Gift Card Generator
+  </button>
+</div>
           </div>
+          
         )}
 
         {/** --------------- ADMIN VIEW ---------------- */}
